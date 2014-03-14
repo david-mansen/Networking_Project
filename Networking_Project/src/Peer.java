@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class Peer {
 	//parameters from PeerInfo.cfg
 	private int peerID;				//e.g. 1001
-	private String address; 		//e.g. sun114-11.cise.ufl.edu
+	private String hostName; 		//e.g. sun114-11.cise.ufl.edu
 	private int portNum;			//e.g. 6008 
 	private boolean hasEntireFile;	//indicated by last digit in peerinfo.cfg
 	
@@ -21,17 +21,23 @@ public class Peer {
 	private int pieceSize;			// size in bytes of each piece
 	
 	//other fields
-	Socket uploadSocket;
+	private int numPieces;
+	private boolean[] bitfield;		//1 or 0 indicates the peer has the piece or not
 	
-	ArrayList<SwarmPeer> otherPeers;
-	ArrayList<SwarmPeer> preferredPeers;
+	private Socket uploadSocket;
+	
+	private ArrayList<SwarmPeer> otherPeers;
+	private ArrayList<SwarmPeer> preferredPeers;
 	
 	
 	public Peer(int peerID) 
 	{
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
+		
 		initialize();
+		bitfield = new boolean[numPieces];
+		
 	}
 	
 	public void initialize()
@@ -64,6 +70,8 @@ public class Peer {
 
 		//end reading common.cfg
 		
+		numPieces = fileSize/pieceSize; //calculate numPieces, need for bitfields
+		
 		//read PeerInfo.cfg
 		try
 		{
@@ -76,7 +84,7 @@ public class Peer {
 		}
 		while(scanner.hasNext()){
 			int peerID = scanner.nextInt();
-			String address = scanner.next();
+			String hostName = scanner.next();
 			int portNum = scanner.nextInt();
 			int hasEntireFileInteger= scanner.nextInt();
 			boolean hasEntireFile;
@@ -90,14 +98,14 @@ public class Peer {
 			if(this.peerID == peerID)
 			{
 				//initialize fields of this instance
-				this.address = address;
+				this.hostName = hostName;
 				this.portNum = portNum;
 				this.hasEntireFile = hasEntireFile;
 			}
 			else
 			{
 				//create a peer with these parameters 
-				SwarmPeer swarmPeer = new SwarmPeer(peerID,address,portNum,hasEntireFile);
+				SwarmPeer swarmPeer = new SwarmPeer(peerID,hostName,portNum,hasEntireFile,numPieces);
 				otherPeers.add(swarmPeer);
 			}
 		}
