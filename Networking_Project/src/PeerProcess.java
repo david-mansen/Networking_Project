@@ -11,7 +11,7 @@ public class PeerProcess {
 		{
 			int peer_id = Integer.parseInt(arguments[0]);
 			Peer thisPeer = new Peer(peer_id);
-			//thisPeer.run()
+			System.exit(0);
 		}
 	}
 }
