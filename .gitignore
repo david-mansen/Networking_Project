@@ -20,4 +20,6 @@ tmp/
 .externalToolBuilders/
 *.launch
 *.cfg
+!Common.cfg
+!PeerInfo.cfg
 *.properties
