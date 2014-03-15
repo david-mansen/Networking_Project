@@ -1,8 +1,11 @@
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 
 
@@ -42,6 +45,40 @@ public class Peer {
 		initializeBitfield();
 		initializeDirectory();
 		
+		writeToLogFile("test");
+		
+	}
+	
+	private void writeToLogFile(String log)
+	{
+		System.out.println("Writing to log...");
+		
+		File tempLogFile = null;
+		tempLogFile = new File("log_peer_"+peerID+".log");
+		if(!tempLogFile.exists())
+		{
+			System.out.println("File not found.  Creating new log file");
+			try
+			{
+				tempLogFile.createNewFile();
+			}
+			catch(IOException error)
+			{
+				throw new RuntimeException("Error creating log file");
+			}
+		}
+		try
+		{
+			FileWriter fileWriter = new FileWriter(tempLogFile,true); //true means append to file
+			BufferedWriter logWriter = new BufferedWriter(fileWriter);
+			logWriter.write("test");
+			logWriter.newLine();
+			logWriter.close();
+		}
+		catch(IOException e)
+		{
+			throw new RuntimeException("Error writing to log file");
+		}
 	}
 	
 	public void readConfigFiles()
@@ -51,11 +88,9 @@ public class Peer {
 			try
 			{
 				scanner = new Scanner(new File("Common.cfg"));
-				
 			}
 			catch(FileNotFoundException error)
 			{
-				
 				System.out.println("File Common.cfg not found.  Exiting...");
 				System.exit(0);
 			}
@@ -100,7 +135,6 @@ public class Peer {
 			else{
 				hasEntireFile = false;
 			}
-			
 			if(this.peerID == peerID)
 			{
 				//initialize fields of this instance
@@ -155,8 +189,6 @@ public class Peer {
 				System.out.println("Directory Not Found. Making directory");
 				fileDirectory.mkdirs();
 			}
-			
-			
 		}
 		
 	}
@@ -180,8 +212,5 @@ public class Peer {
 				bitfield[i]=false;
 			}
 		}
-		
 	}
-
-
 }
