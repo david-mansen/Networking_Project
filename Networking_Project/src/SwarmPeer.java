@@ -18,8 +18,33 @@ public class SwarmPeer {
 			this.hostName = hostName;
 			this.portNum = portNum;
 			this.hasEntireFile = hasEntireFile;
-			bitfield = new boolean[numPieces];
+			
+			
+			initializeBitfield(numPieces);
+			
 			System.out.println("Peer " + peerID +"created");
+		}
+		
+		private void initializeBitfield(int numPieces)
+		{
+			
+			bitfield = new boolean[numPieces];
+			
+			if(hasEntireFile == true)
+			{
+				for(int i=0; i<numPieces; i++)
+				{
+					bitfield[i]=true;
+				}
+			}
+			else
+			{
+				for(int i=0; i<numPieces; i++)
+				{
+					bitfield[i]=false;
+				}
+			}
+			
 		}
 		
 }

@@ -4,7 +4,7 @@ public class PeerProcess {
 	{
 		if(arguments.length!=1)
 		{
-			System.out.println("");
+			System.out.println("Must contain (1) argument");
 			System.exit(0);
 		}
 		else
