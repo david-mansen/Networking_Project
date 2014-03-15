@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
+import java.net.*;
 
 
 public class Peer {
@@ -28,7 +29,6 @@ public class Peer {
 	private int numPieces;
 	private boolean[] bitfield;		//1 or 0 indicates the peer has the piece or not
 	
-	private Socket uploadSocket;
 	
 	private ArrayList<SwarmPeer> otherPeers;
 	private ArrayList<SwarmPeer> preferredPeers;
@@ -36,17 +36,76 @@ public class Peer {
 	
 	public Peer(int peerID) 
 	{
+		
+		ServerSocket serverSocket = null;
+		Socket serviceSocket = null;
+		
+		Socket clientSocket = null;
+		
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
 		
 		readConfigFiles();  //this reads the settings for this peer as well as initialize the other peers
 		
-		
 		initializeBitfield();
 		initializeDirectory();
 		
-		writeToLogFile("test");
+		//java network stuff
+		if(peerID==1001){
+			try
+			{
+				serverSocket = new ServerSocket(portNum);
+			}
+			catch(IOException exception)
+			{
+				System.out.println("Error with establishing socket");
+			}
+			int i=0;
+			
+			
+				try
+				{
+					serviceSocket = serverSocket.accept();
+					System.out.println("connection established");
+				}
+				catch(UnknownHostException exception)
+				{
+					System.out.println("Connection not established");
+				}
+				catch(IOException e){
+					System.out.println("Error");
+				}
+				
+			
+		}
+		if(peerID==1002)
+		{
+			try
+			{
+				clientSocket = new Socket(hostName,portNum);
+				System.out.println("Peer established connection");
+			}
+			catch(IOException exception)
+			{
+				System.out.println("Error with establishing socket");
+			}
+			
+		}
+		//initializeConnections();
 		
+	
+		
+	}
+	
+	private void initializeConnections()
+	{
+		for(SwarmPeer connectPeer : otherPeers)
+		{
+			if(connectPeer.getPeerID() < peerID)
+			{
+				
+			}
+		}
 	}
 	
 	private void writeToLogFile(String log)

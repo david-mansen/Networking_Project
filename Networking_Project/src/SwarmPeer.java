@@ -47,4 +47,16 @@ public class SwarmPeer {
 			
 		}
 		
+		public int getPeerID() {
+			return peerID;
+		}
+
+		public String getHostName() {
+			return hostName;
+		}
+
+		public int getPortNum() {
+			return portNum;
+		}
+		
 }
