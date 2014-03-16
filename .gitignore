@@ -21,3 +21,5 @@ tmp/
 *.launch
 *.cfg
 *.properties
+*.log
+Networking_Project/PeerInfo.cfg

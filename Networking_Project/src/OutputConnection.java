@@ -36,9 +36,11 @@ public class OutputConnection extends Thread
 			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
 			sendMessage(handshake);
 		}
+		peer.writeToLogFile("testing");
 		peer.createInputConnection(new InputConnection(peer,outputSocket));
 		peer.writeToLogFile("input connection created successfully");
 		int i = 0;
+		peer.writeToLogFile("output connection end reached");
 		while(i!=1)
 		{
 
@@ -64,19 +66,20 @@ public class OutputConnection extends Thread
 	
 	public void establishConnection()
 	{
-		if(outputSocket == null)
-		{
-			try
+			while(outputSocket==null || outputSocket.isConnected()==false)
 			{
-				outputSocket = new Socket(targetPeer.getHostName(),targetPeer.getPortNum());
-				peer.writeToLogFile("Peer "+peer.getPeerID()+" established connection with "+targetPeer.getPeerID());
+				try
+				{
+					outputSocket = new Socket(targetPeer.getHostName(),targetPeer.getPortNum());
+					peer.writeToLogFile("Peer "+peer.getPeerID()+" established connection with "+targetPeer.getPeerID());
+				}
+				catch(IOException exception)
+				{
+					System.err.println();
+				}
 			}
-			catch(IOException exception)
-			{
-				System.err.println();
-			}
-		}
 	}
+	
 
 	public Socket getSocket() {
 		return outputSocket;

@@ -41,11 +41,13 @@ public class InputConnection extends Thread
 		peer.writeToLogFile("Input connection received Client with peer id: "+peerID);
 		
 		peer.createOutputConnection(new OutputConnection(peer,inputSocket));
-		
+		System.out.println("uh oh, another output connection created");
 		peer.writeToLogFile("output connection created");
 		int i=0;
+		peer.writeToLogFile("input connection end reached");
 		while(i!=1)
 		{
+			
 		}
 	}
 	
@@ -111,8 +113,10 @@ public class InputConnection extends Thread
 	
 	public void waitForConnection()
 	{
+		peer.writeToLogFile("entered wait for connection method");
 		if(inputSocket == null)
 		{
+			peer.writeToLogFile("uh oh, wrong place");
 			try
 			{
 				serverSocket = new ServerSocket(peer.getPortNum());
