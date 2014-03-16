@@ -112,15 +112,15 @@ public class InputConnection extends Thread
 		{
 			throw new RuntimeException(exception);		
 		}
-		for(int i=0;i<lengthT_P.length){
-			lengthPayT_P[i] = inputStream.read(); 
+		for(int i=0;i<lengthT_P.length;i++){
+			lengthT_P[i] = inputStream.readByte(); 
 		}
 		
-		int lengthMessage = java.nio.ByteBuffer.wrap(lengthPayT_P).getInt();
+		int lengthMessage = java.nio.ByteBuffer.wrap(lengthT_P).getInt();
 		byte[] MType = new byte[1];
-		MType[0] = inputStream.read();
+		MType[0] = inputStream.readByte();
 	
-		
+		byte[] MPay;
 		int TypeMessage = java.nio.ByteBuffer.wrap(MType).getInt();
 		switch(TypeMessage){
 			case 0: 
@@ -136,32 +136,32 @@ public class InputConnection extends Thread
 				//Set Uninterested
 				break;
 			case 4:
-				byte[] MPay= new byte[lengthMessage-1];
+				MPay= new byte[lengthMessage-1];
 				for(int i=0;i<MPay.length;i++){
-					MPay[i] = inputStream.read(); 
+					MPay[i] = inputStream.readByte(); 
 				}
 				HaveMessage HM = new HaveMessage(MPay);
 				break;
 			case 5: 
-				byte[] MPay= new byte[lengthMessage-1];
+				MPay= new byte[lengthMessage-1];
 				for(int i=0;i<<MPay.length;i++){
-					MPay[i] = inputStream.read(); 
+					MPay[i] = inputStream.readByte(); 
 				}
-				HaveMessage HM = new HaveMessage(MPay);
+				BitMessage BM = new BitMessage(MPay);
 				break;
 			case 6:
-				byte[] MPay= new byte[lengthMessage-1];
+				MPay= new byte[lengthMessage-1];
 				for(int i=0;i<<MPay.length;i++){
-					MPay[i] = inputStream.read(); 
+					MPay[i] = inputStream.readByte(); 
 				}
-				HaveMessage HM = new HaveMessage(MPay);
+				RequestMessage RM = new RequestMessage(MPay);
 				break;
 			case 7:
-				byte [] MPay= new byte[lengthMessage-1];
+				MPay= new byte[lengthMessage-1];
 				for(int i=0;i<<MPay.length;i++){
-					MPay[i] = inputStream.read(); 
+					MPay[i] = inputStream.readByte(); 
 				}
-				HaveMessage HM = new HaveMessage(MPay);
+				PieceMessage PM = new PieceMessage(MPay);
 				break;
 			case default :
 				break;
