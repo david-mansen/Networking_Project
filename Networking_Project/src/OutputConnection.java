@@ -33,15 +33,15 @@ public class OutputConnection extends Thread
 		establishConnection();
 		if(outputSocket!=null)
 		{
-			System.out.println("not null");
-			peer.setConnectionEstablished(true);
 			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
 			sendMessage(handshake);
 		}
+		peer.createInputConnection(new InputConnection(peer,outputSocket));
+		peer.writeToLogFile("input connection created successfully");
 		int i = 0;
 		while(i!=1)
 		{
-			
+
 		}
 	}
 	
@@ -69,7 +69,7 @@ public class OutputConnection extends Thread
 			try
 			{
 				outputSocket = new Socket(targetPeer.getHostName(),targetPeer.getPortNum());
-				System.out.println("Peer "+peer.getPeerID()+" established connection with "+targetPeer.getPeerID());
+				peer.writeToLogFile("Peer "+peer.getPeerID()+" established connection with "+targetPeer.getPeerID());
 			}
 			catch(IOException exception)
 			{

@@ -12,6 +12,8 @@ public class InputConnection extends Thread
 	private Socket inputSocket;
 	private Peer peer;
 	
+	
+	
 	public InputConnection(Peer peer)
 	{
 		this.peer=peer;
@@ -29,15 +31,21 @@ public class InputConnection extends Thread
 	{
 		System.out.println("input connection running");
 		peer.writeToLogFile("Waiting for connection");
+		
 		waitForConnection(); //only if connection not already established
+		
 		peer.writeToLogFile("Waiting for handshake message");
+		
 		int peerID=waitForHandshakeMessage();//returns the peerID of connecting peer
-		peer.setHandshakeReceived(true);
+		
 		peer.writeToLogFile("Input connection received Client with peer id: "+peerID);
+		
+		peer.createOutputConnection(new OutputConnection(peer,inputSocket));
+		
+		peer.writeToLogFile("output connection created");
 		int i=0;
 		while(i!=1)
 		{
-			
 		}
 	}
 	
