@@ -101,7 +101,7 @@ public class InputConnection extends Thread
 		return intPeerID;
 	}
 	
-	public void waitForNormalMessage{
+	public void waitForNormalMessage(){
 		byte[] lengthT_P = new byte[4]; //Length of bytes representing length of message
 		DataInputStream inputStream = null;
 		try
@@ -140,14 +140,14 @@ public class InputConnection extends Thread
 				for(int i=0;i<MPay.length;i++){
 					MPay[i] = inputStream.readByte(); 
 				}
-				HaveMessage HM = new HaveMessage(MPay);
+				HaveMessage HM = new HaveMessage(MPay, senderID, peer); //Need sender ID
 				break;
 			case 5: 
 				MPay= new byte[lengthMessage-1];
 				for(int i=0;i<<MPay.length;i++){
 					MPay[i] = inputStream.readByte(); 
 				}
-				BitMessage BM = new BitMessage(MPay);
+				BitfieldMessage BM = new BitfiledMessage(MPay, senderID, peer);
 				break;
 			case 6:
 				MPay= new byte[lengthMessage-1];
