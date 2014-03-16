@@ -101,6 +101,82 @@ public class InputConnection extends Thread
 		return intPeerID;
 	}
 	
+	public void waitForNormalMessage{
+		byte[] lengthT_P = new byte[4]; //Length of bytes representing length of message
+		DataInputStream inputStream = null;
+		try
+		{
+			inputStream = new DataInputStream(inputSocket.getInputStream());
+		} 
+		catch (IOException exception)
+		{
+			throw new RuntimeException(exception);		
+		}
+		for(int i=0;i<lengthT_P.length){
+			lengthPayT_P[i] = inputStream.read(); 
+		}
+		
+		int lengthMessage = java.nio.ByteBuffer.wrap(lengthPayT_P).getInt();
+		byte[] MType = new byte[1];
+		MType[0] = inputStream.read();
+	
+		
+		int TypeMessage = java.nio.ByteBuffer.wrap(MType).getInt();
+		switch(TypeMessage){
+			case 0: 
+				//Set choke
+				break;
+			case 1:
+				//Set unchoke
+				break;
+			case 2: 
+				//Set interested
+				break;
+			case 3:
+				//Set Uninterested
+				break;
+			case 4:
+				byte[] MPay= new byte[lengthMessage-1];
+				for(int i=0;i<MPay.length;i++){
+					MPay[i] = inputStream.read(); 
+				}
+				HaveMessage HM = new HaveMessage(MPay);
+				break;
+			case 5: 
+				byte[] MPay= new byte[lengthMessage-1];
+				for(int i=0;i<<MPay.length;i++){
+					MPay[i] = inputStream.read(); 
+				}
+				HaveMessage HM = new HaveMessage(MPay);
+				break;
+			case 6:
+				byte[] MPay= new byte[lengthMessage-1];
+				for(int i=0;i<<MPay.length;i++){
+					MPay[i] = inputStream.read(); 
+				}
+				HaveMessage HM = new HaveMessage(MPay);
+				break;
+			case 7:
+				byte [] MPay= new byte[lengthMessage-1];
+				for(int i=0;i<<MPay.length;i++){
+					MPay[i] = inputStream.read(); 
+				}
+				HaveMessage HM = new HaveMessage(MPay);
+				break;
+			case default :
+				break;
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	}
+	
 	public void waitForConnection()
 	{
 		if(inputSocket == null)
