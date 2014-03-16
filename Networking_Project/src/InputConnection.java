@@ -12,20 +12,32 @@ public class InputConnection extends Thread
 	private Socket inputSocket;
 	private Peer peer;
 	
+	private boolean handshakeReceived;
+	
 	public InputConnection(Peer peer)
 	{
 		this.peer=peer;
 		serverSocket = null;
+		handshakeReceived = false;
+		this.start(); //start the thread
+	}
+	public InputConnection(Peer peer, Socket existingSocket)
+	{
+		this.peer=peer;
+		inputSocket = existingSocket;
+		handshakeReceived = false;
 		this.start(); //start the thread
 	}
 	
 	public void run()
 	{
-		HandshakeMessage m = new HandshakeMessage(1002);
-		m.toString();
 		System.out.println("input connection running");
-		waitForConnection();
-		waitForHandshakeMessage();//returns the peerID of connecting peer
+		waitForConnection(); //only if connection not already established
+		int peerID=waitForHandshakeMessage();//returns the peerID of connecting peer
+		handshakeReceived = true;
+		peer.writeToLogFile("Input connection received Client with peer id: "+peerID);
+		System.out.println("Input connection received Client with peer id: "+peerID);
+		
 	}
 	
 	public int waitForHandshakeMessage()
@@ -88,7 +100,8 @@ public class InputConnection extends Thread
 	
 	public void waitForConnection()
 	{
-		if(serverSocket == null){
+		if(inputSocket == null)
+		{
 			try
 			{
 				serverSocket = new ServerSocket(peer.getPortNum());
@@ -119,5 +132,15 @@ public class InputConnection extends Thread
 				}
 			}
 		}
+	}
+
+	public Socket getSocket()
+	{
+		return inputSocket;
+	}
+	
+	public boolean getHandshakeReceived()
+	{
+		return handshakeReceived;
 	}
 }

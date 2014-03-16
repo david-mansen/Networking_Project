@@ -64,17 +64,36 @@ public class Peer {
 			{
 				//create a thread that creates a Socket to establish connection with ServerSocket
 				outputConnection1 = new OutputConnection(this,connectPeer);
+				while(outputConnection1.getConnectionEstablished() == false)
+				{
+					//wait for connection
+				}
+				inputConnection1 = new InputConnection(this,outputConnection1.getSocket());
+				while(inputConnection1.getHandshakeReceived() == false)
+				{
+					//do nothing while waiting for handshake
+				}
 			}
 			else
 			{
 				//create a thread that creates a ServerSocket
 				inputConnection1 = new InputConnection(this);
+				while(inputConnection1.getHandshakeReceived() == false)
+				{
+					System.out.println("waiting for handshake");
+					//do nothing while waiting for handshake
+				}
+				outputConnection1 = new OutputConnection(this,inputConnection1.getSocket());
+				while(outputConnection1.getConnectionEstablished() == false)
+				{
+					System.out.println("waiting for output connection to establish");
+				}
 			}
 			}
 		}
 	}
 	
-	private void writeToLogFile(String log)
+	public void writeToLogFile(String log)
 	{
 		System.out.println("Writing to log...");
 		
@@ -96,7 +115,7 @@ public class Peer {
 		{
 			FileWriter fileWriter = new FileWriter(tempLogFile,true); //true means append to file
 			BufferedWriter logWriter = new BufferedWriter(fileWriter);
-			logWriter.write("test");
+			logWriter.write(log);
 			logWriter.newLine();
 			logWriter.close();
 		}

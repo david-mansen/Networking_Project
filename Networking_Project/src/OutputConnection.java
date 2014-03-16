@@ -9,13 +9,24 @@ public class OutputConnection extends Thread
 {
 	private Peer peer;
 	private SwarmPeer targetPeer;
-	private Socket clientSocket;
+	private Socket outputSocket;
+	
+	private boolean connectionEstablished;
 	
 	public OutputConnection(Peer peer, SwarmPeer targetPeer)
 	{
 		this.peer=peer;
 		this.targetPeer=targetPeer;
-		clientSocket = null;
+		outputSocket = null;
+		connectionEstablished = false;
+		this.start(); //start the thread
+	}
+	
+	public OutputConnection(Peer peer, Socket existingSocket)
+	{
+		this.peer=peer;
+		outputSocket = existingSocket;
+		connectionEstablished = false;
 		this.start(); //start the thread
 	}
 	
@@ -23,11 +34,11 @@ public class OutputConnection extends Thread
 	{
 		System.out.println("Output connection running");
 		establishConnection();
-		if(clientSocket!=null)
+		if(outputSocket!=null)
 		{
+			connectionEstablished = true;
 			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
 			sendMessage(handshake);
-			
 		}
 	}
 	
@@ -38,7 +49,7 @@ public class OutputConnection extends Thread
 		OutputStream outputStream;
 		try
 		{
-			outputStream = clientSocket.getOutputStream();
+			outputStream = outputSocket.getOutputStream();
 			outputStream.write(outputBytes);
 			outputStream.flush();
 		}
@@ -50,15 +61,27 @@ public class OutputConnection extends Thread
 	
 	public void establishConnection()
 	{
-		try
+		if(outputSocket == null)
 		{
-			clientSocket = new Socket(targetPeer.getHostName(),targetPeer.getPortNum());
-			System.out.println("Peer "+peer.getPeerID()+" established connection with "+targetPeer.getPeerID());
+			try
+			{
+				outputSocket = new Socket(targetPeer.getHostName(),targetPeer.getPortNum());
+				System.out.println("Peer "+peer.getPeerID()+" established connection with "+targetPeer.getPeerID());
+			}
+			catch(IOException exception)
+			{
+				System.err.println();
+			}
 		}
-		catch(IOException exception)
-		{
-			System.err.println();
-		}
+	}
+
+	public Socket getSocket() {
+		return outputSocket;
+	}
+	
+	public boolean getConnectionEstablished()
+	{
+		return connectionEstablished;
 	}
 	
 }
