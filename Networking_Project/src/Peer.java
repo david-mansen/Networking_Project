@@ -33,15 +33,11 @@ public class Peer {
 	private ArrayList<SwarmPeer> otherPeers;
 	private ArrayList<SwarmPeer> preferredPeers;
 	
+	private OutputConnection outputConnection1;
+	private InputConnection inputConnection1;
 	
 	public Peer(int peerID) 
 	{
-		
-		ServerSocket serverSocket = null;
-		Socket serviceSocket = null;
-		
-		Socket clientSocket = null;
-		
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
 		
@@ -50,60 +46,30 @@ public class Peer {
 		initializeBitfield();
 		initializeDirectory();
 		
-		//java network stuff
-		if(peerID==1001){
-			try
-			{
-				serverSocket = new ServerSocket(portNum);
-			}
-			catch(IOException exception)
-			{
-				System.out.println("Error with establishing socket");
-			}
-			int i=0;
+		initializeConnections();
+		int i=0;
+		while(i!=1){
 			
-			
-				try
-				{
-					serviceSocket = serverSocket.accept();
-					System.out.println("connection established");
-				}
-				catch(UnknownHostException exception)
-				{
-					System.out.println("Connection not established");
-				}
-				catch(IOException e){
-					System.out.println("Error");
-				}
-				
 			
 		}
-		if(peerID==1002)
-		{
-			try
-			{
-				clientSocket = new Socket(hostName,portNum);
-				System.out.println("Peer established connection");
-			}
-			catch(IOException exception)
-			{
-				System.out.println("Error with establishing socket");
-			}
-			
-		}
-		//initializeConnections();
-		
-	
-		
 	}
 	
 	private void initializeConnections()
 	{
 		for(SwarmPeer connectPeer : otherPeers)
 		{
+			if(connectPeer.getPeerID() < 1003)
+			{
 			if(connectPeer.getPeerID() < peerID)
 			{
-				
+				//create a thread that creates a Socket to establish connection with ServerSocket
+				outputConnection1 = new OutputConnection(this,connectPeer);
+			}
+			else
+			{
+				//create a thread that creates a ServerSocket
+				inputConnection1 = new InputConnection(this);
+			}
 			}
 		}
 	}
@@ -271,5 +237,38 @@ public class Peer {
 				bitfield[i]=false;
 			}
 		}
+	}
+	
+
+	public int getPeerID() {
+		return peerID;
+	}
+
+	public String getHostName() {
+		return hostName;
+	}
+
+	public int getPortNum() {
+		return portNum;
+	}
+
+	public String getFileName() {
+		return fileName;
+	}
+
+	public int getFileSize() {
+		return fileSize;
+	}
+
+	public int getPieceSize() {
+		return pieceSize;
+	}
+
+	public int getNumPieces() {
+		return numPieces;
+	}
+
+	public boolean[] getBitfield() {
+		return bitfield;
 	}
 }
