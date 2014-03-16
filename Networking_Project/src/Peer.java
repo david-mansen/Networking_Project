@@ -36,10 +36,16 @@ public class Peer {
 	private OutputConnection outputConnection1;
 	private InputConnection inputConnection1;
 	
+	private boolean handshakeReceived;
+	private boolean connectionEstablished;
+	
 	public Peer(int peerID) 
 	{
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
+		
+		handshakeReceived=false;
+		connectionEstablished = false;
 		
 		readConfigFiles();  //this reads the settings for this peer as well as initialize the other peers
 		
@@ -60,35 +66,51 @@ public class Peer {
 		{
 			if(connectPeer.getPeerID() < 1003)
 			{
-			if(connectPeer.getPeerID() < peerID)
-			{
-				//create a thread that creates a Socket to establish connection with ServerSocket
-				outputConnection1 = new OutputConnection(this,connectPeer);
-				while(outputConnection1.getConnectionEstablished() == false)
+				if(connectPeer.getPeerID() > peerID)
 				{
-					//wait for connection
+					//create a thread that creates a ServerSocket
+					writeToLogFile("\ncreating input connection");
+
+					inputConnection1 = new InputConnection(this);
+					writeToLogFile("input connection created");
+					while(handshakeReceived == false)
+					{
+						System.out.println(String.valueOf(handshakeReceived));
+						//do nothing while waiting for handshake
+					}
+					writeToLogFile("handshake received, copying to output connection");
+
+					outputConnection1 = new OutputConnection(this,inputConnection1.getSocket());
+					writeToLogFile("output connection created");
+
+					while(connectionEstablished == false)
+					{
+						System.out.println("waiting for output connection to establish");
+					}
+					writeToLogFile("output connection established");
+
 				}
-				inputConnection1 = new InputConnection(this,outputConnection1.getSocket());
-				while(inputConnection1.getHandshakeReceived() == false)
+				else
 				{
-					//do nothing while waiting for handshake
+					//create a thread that creates a Socket to establish connection with ServerSocket
+					writeToLogFile("\nPreparing to establish outputconnection");
+					outputConnection1 = new OutputConnection(this,connectPeer);
+					writeToLogFile("Output connection created");
+					while(connectionEstablished == false)
+					{
+						//wait for connection
+					}
+					writeToLogFile("connection successfully established,  copying to input connection");
+	
+					inputConnection1 = new InputConnection(this,outputConnection1.getSocket());
+					writeToLogFile("input connection created successfully");
+	
+					while(handshakeReceived == false)
+					{
+						//do nothing while waiting for handshake
+					}
 				}
-			}
-			else
-			{
-				//create a thread that creates a ServerSocket
-				inputConnection1 = new InputConnection(this);
-				while(inputConnection1.getHandshakeReceived() == false)
-				{
-					System.out.println("waiting for handshake");
-					//do nothing while waiting for handshake
-				}
-				outputConnection1 = new OutputConnection(this,inputConnection1.getSocket());
-				while(outputConnection1.getConnectionEstablished() == false)
-				{
-					System.out.println("waiting for output connection to establish");
-				}
-			}
+			
 			}
 		}
 	}
@@ -289,5 +311,15 @@ public class Peer {
 
 	public boolean[] getBitfield() {
 		return bitfield;
+	}
+	
+	public void setHandshakeReceived(boolean handshakeReceived)
+	{
+		this.handshakeReceived=handshakeReceived;
+	}
+	
+	public void setConnectionEstablished(boolean connectionEstablished)
+	{
+		this.connectionEstablished=connectionEstablished;
 	}
 }

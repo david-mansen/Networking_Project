@@ -11,14 +11,12 @@ public class OutputConnection extends Thread
 	private SwarmPeer targetPeer;
 	private Socket outputSocket;
 	
-	private boolean connectionEstablished;
 	
 	public OutputConnection(Peer peer, SwarmPeer targetPeer)
 	{
 		this.peer=peer;
 		this.targetPeer=targetPeer;
 		outputSocket = null;
-		connectionEstablished = false;
 		this.start(); //start the thread
 	}
 	
@@ -26,7 +24,6 @@ public class OutputConnection extends Thread
 	{
 		this.peer=peer;
 		outputSocket = existingSocket;
-		connectionEstablished = false;
 		this.start(); //start the thread
 	}
 	
@@ -36,9 +33,15 @@ public class OutputConnection extends Thread
 		establishConnection();
 		if(outputSocket!=null)
 		{
-			connectionEstablished = true;
+			System.out.println("not null");
+			peer.setConnectionEstablished(true);
 			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
 			sendMessage(handshake);
+		}
+		int i = 0;
+		while(i!=1)
+		{
+			
 		}
 	}
 	
@@ -79,9 +82,5 @@ public class OutputConnection extends Thread
 		return outputSocket;
 	}
 	
-	public boolean getConnectionEstablished()
-	{
-		return connectionEstablished;
-	}
 	
 }
