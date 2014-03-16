@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -22,7 +23,32 @@ public class OutputConnection extends Thread
 	{
 		System.out.println("Output connection running");
 		establishConnection();
+		if(clientSocket!=null)
+		{
+			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
+			sendMessage(handshake);
+			
+		}
 	}
+	
+	public void sendMessage(Message message)
+	{
+		String output = message.toString();
+		byte[] outputBytes = output.getBytes();
+		
+		OutputStream outputStream;
+		try
+		{
+			outputStream = clientSocket.getOutputStream();
+			outputStream.write(outputBytes);
+			outputStream.flush();
+		}
+		catch(Exception exception)
+		{
+			throw new RuntimeException(exception);
+		}
+	}
+	
 	public void establishConnection()
 	{
 		try
@@ -35,4 +61,5 @@ public class OutputConnection extends Thread
 			System.err.println();
 		}
 	}
+	
 }
