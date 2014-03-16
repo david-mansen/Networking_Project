@@ -1,17 +1,18 @@
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 
 public class HandshakeMessage extends Message{
 	
 	private String header;
-	private Byte[] zeroField;
+	private byte[] zeroField;
 	private int peerID;
 	
 	public HandshakeMessage(int peerID)
 	{
 		this.peerID=peerID;
 		header="HELLO";
-		zeroField = new Byte[23];
+		zeroField = new byte[23];
 		Arrays.fill(zeroField,(byte)0);
 	}
 	public HandshakeMessage(String handshakeString)
@@ -22,7 +23,13 @@ public class HandshakeMessage extends Message{
 	@Override
 	public String toString()
 	{
-		String string = header+zeroField.toString()+Integer.toString(peerID);
+		String zeroFieldString = null;
+		try {
+			zeroFieldString = new String(zeroField, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		String string = header+zeroFieldString+Integer.toString(peerID);
 		return string;
 	}
 }

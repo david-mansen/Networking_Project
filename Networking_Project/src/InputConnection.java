@@ -1,5 +1,6 @@
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -20,12 +21,14 @@ public class InputConnection extends Thread
 	
 	public void run()
 	{
+		HandshakeMessage m = new HandshakeMessage(1002);
+		m.toString();
 		System.out.println("input connection running");
 		waitForConnection();
-		waitForHandshakeMessage();
+		waitForHandshakeMessage();//returns the peerID of connecting peer
 	}
 	
-	public void waitForHandshakeMessage()
+	public int waitForHandshakeMessage()
 	{
 		byte[] inputBytes = new byte[32];
 		int numBytes;
@@ -49,6 +52,38 @@ public class InputConnection extends Thread
 				throw new RuntimeException(exception);
 			}
 		}while(numBytes != 32);
+		// get info from handshake message
+		byte[] helloBytes = new byte[5];
+		byte[] zeroFieldBytes = new byte [23];
+		byte[] peerIDBytes = new byte[4];
+		
+		for(int i=0;i<=4;i++)
+		{
+			helloBytes[i] = inputBytes[i];
+		}
+		for(int i=5;i<=27;i++)
+		{
+			zeroFieldBytes[i-5] = inputBytes[i];
+		}
+		for(int i=28;i<=31;i++)
+		{
+			peerIDBytes[i-28] = inputBytes[i];
+		}
+		String stringHello = null;
+		String stringZeroField = null;
+		String stringPeerID = null;
+		try
+		{
+			stringHello = new String(helloBytes,"UTF-8");
+			stringZeroField = new String(zeroFieldBytes,"UTF-8");
+			stringPeerID = new String(peerIDBytes,"UTF-8");
+		}
+		catch(UnsupportedEncodingException error)
+		{
+			error.printStackTrace();
+		}
+		int intPeerID = Integer.parseInt(stringPeerID);
+		return intPeerID;
 	}
 	
 	public void waitForConnection()

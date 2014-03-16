@@ -35,7 +35,6 @@ public class OutputConnection extends Thread
 	{
 		String output = message.toString();
 		byte[] outputBytes = output.getBytes();
-		
 		OutputStream outputStream;
 		try
 		{
