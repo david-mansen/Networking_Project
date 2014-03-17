@@ -11,9 +11,11 @@ public class OutputConnection extends Thread
 	private SwarmPeer targetPeer;
 	private Socket outputSocket;
 	
+	public boolean done;
 	
 	public OutputConnection(Peer peer, SwarmPeer targetPeer)
 	{
+		done=false;
 		this.peer=peer;
 		this.targetPeer=targetPeer;
 		outputSocket = null;
@@ -22,6 +24,7 @@ public class OutputConnection extends Thread
 	
 	public OutputConnection(Peer peer, Socket existingSocket)
 	{
+		done=true;
 		this.peer=peer;
 		outputSocket = existingSocket;
 		this.start(); //start the thread
@@ -29,21 +32,21 @@ public class OutputConnection extends Thread
 	
 	public void run()
 	{
-		System.out.println("Output connection running");
 		establishConnection();
 		if(outputSocket!=null)
 		{
 			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
 			sendMessage(handshake);
 		}
-		peer.writeToLogFile("testing");
-		peer.createInputConnection(new InputConnection(peer,outputSocket));
-		peer.writeToLogFile("input connection created successfully");
+		if(peer.getInputConnection() == null)
+		{
+			peer.createInputConnection(new InputConnection(peer,outputSocket));
+		}
+		peer.decrementNumPeersDownloading();
 		int i = 0;
-		peer.writeToLogFile("output connection end reached");
 		while(i!=1)
 		{
-
+			
 		}
 	}
 	

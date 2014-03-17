@@ -12,39 +12,38 @@ public class InputConnection extends Thread
 	private Socket inputSocket;
 	private Peer peer;
 	
-	
+	private boolean handshakeReceived;
+	public boolean done;
 	
 	public InputConnection(Peer peer)
 	{
+		done=false;
 		this.peer=peer;
 		serverSocket = null;
+		handshakeReceived = false;
 		this.start(); //start the thread
 	}
 	public InputConnection(Peer peer, Socket existingSocket)
 	{
+		done=false;
 		this.peer=peer;
 		inputSocket = existingSocket;
+		handshakeReceived = false;
 		this.start(); //start the thread
 	}
 	
 	public void run()
 	{
-		System.out.println("input connection running");
-		peer.writeToLogFile("Waiting for connection");
-		
 		waitForConnection(); //only if connection not already established
-		
-		peer.writeToLogFile("Waiting for handshake message");
 		
 		int peerID=waitForHandshakeMessage();//returns the peerID of connecting peer
 		
-		peer.writeToLogFile("Input connection received Client with peer id: "+peerID);
-		
-		peer.createOutputConnection(new OutputConnection(peer,inputSocket));
-		System.out.println("uh oh, another output connection created");
-		peer.writeToLogFile("output connection created");
+		if(peer.getOutputConnection() == null)
+		{
+			peer.createOutputConnection(new OutputConnection(peer,inputSocket));
+		}
+		peer.decrementNumPeersDownloading();
 		int i=0;
-		peer.writeToLogFile("input connection end reached");
 		while(i!=1)
 		{
 			
@@ -108,6 +107,7 @@ public class InputConnection extends Thread
 			error.printStackTrace();
 		}
 		int intPeerID = Integer.parseInt(stringPeerID);
+		handshakeReceived = true;
 		return intPeerID;
 	}
 	
@@ -181,10 +181,8 @@ public class InputConnection extends Thread
 	
 	public void waitForConnection()
 	{
-		peer.writeToLogFile("entered wait for connection method");
 		if(inputSocket == null)
 		{
-			peer.writeToLogFile("uh oh, wrong place");
 			try
 			{
 				serverSocket = new ServerSocket(peer.getPortNum());

@@ -36,8 +36,14 @@ public class Peer {
 	private OutputConnection outputConnection1;
 	private InputConnection inputConnection1;
 	
+	private int numPeersDownloading;
+	
 	public Peer(int peerID) 
 	{
+		inputConnection1=null;
+		outputConnection1=null;
+		numPeersDownloading = 2;
+		
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
 		
@@ -49,8 +55,15 @@ public class Peer {
 		initializeConnections();
 		int i=0;
 		while(i!=1){
-			
-			
+			System.out.print("");
+			if(numPeersDownloading <= 0)
+			{
+				System.out.println("should have exited");
+				System.out.println("Exiting");
+				outputConnection1.interrupt();
+				inputConnection1.interrupt();
+				System.exit(0);
+			}
 		}
 	}
 	
@@ -62,21 +75,17 @@ public class Peer {
 			{
 				if(connectPeer.getPeerID() > peerID)
 				{
-					writeToLogFile("\ncreating input connection");
 					inputConnection1 = new InputConnection(this);
-					writeToLogFile("input connection created");
 				}
 				else
 				{
-					writeToLogFile("\nPreparing to establish outputconnection");
 					outputConnection1 = new OutputConnection(this,connectPeer);
-					writeToLogFile("Output connection created");
 				}
 			}
 		}
 	}
 	
-	public void writeToLogFile(String log)
+	public synchronized void writeToLogFile(String log)
 	{
 		System.out.println("Writing to log...");
 		
@@ -137,7 +146,7 @@ public class Peer {
 
 		//end reading common.cfg
 		
-		numPieces = fileSize/pieceSize; //calculate numPieces, need for bitfields
+		numPieces = (int)Math.ceil((float)fileSize/(float)pieceSize); //calculate numPieces, need for bitfields
 		
 		//read PeerInfo.cfg
 		try
@@ -242,46 +251,65 @@ public class Peer {
 	}
 	
 
-	public int getPeerID() {
+	public synchronized int getPeerID() {
 		return peerID;
 	}
 
-	public String getHostName() {
+	public synchronized String getHostName() {
 		return hostName;
 	}
 
-	public int getPortNum() {
+	public synchronized int getPortNum() {
 		return portNum;
 	}
 
-	public String getFileName() {
+	public synchronized String getFileName() {
 		return fileName;
 	}
 
-	public int getFileSize() {
+	public synchronized int getFileSize() {
 		return fileSize;
 	}
 
-	public int getPieceSize() {
+	public synchronized int getPieceSize() {
 		return pieceSize;
 	}
 
-	public int getNumPieces() {
+	public synchronized int getNumPieces() {
 		return numPieces;
 	}
 
-	public boolean[] getBitfield() {
+	public synchronized boolean[] getBitfield() {
 		return bitfield;
 	}
 	
-	public void createInputConnection(InputConnection inputConnection)
+	public synchronized void createInputConnection(InputConnection inputConnection)
 	{
 		inputConnection1=inputConnection;
 	}
 	
-	public void createOutputConnection(OutputConnection outputConnection)
+	public synchronized void createOutputConnection(OutputConnection outputConnection)
 	{
 		outputConnection1=outputConnection;
 	}
 	
+	public synchronized OutputConnection getOutputConnection()
+	{
+		return outputConnection1;
+	}
+	
+	public synchronized InputConnection getInputConnection()
+	{
+		return inputConnection1;
+	}
+	
+	public synchronized void decrementNumPeersDownloading()
+	{
+		numPeersDownloading--;
+	}
+	
+	public synchronized int getNumPeersDownloading()
+	{
+		return numPeersDownloading;
+	}
 }
