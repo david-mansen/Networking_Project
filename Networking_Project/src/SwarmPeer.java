@@ -58,4 +58,15 @@ public class SwarmPeer {
 			return portNum;
 		}
 		
+		public void updateBitfield(int pieceNumber)
+		{
+			bitfield[pieceNumber] = true;
+			//error checking probably needed, later
+		}
+		
+		public void assignReceivedBitfield()
+		{
+			//bitfield = receivedBitfield;
+		}
+		
 }

@@ -316,4 +316,33 @@ public class Peer {
 	{
 		return numPeersDownloading;
 	}
+	
+	public void updateSwarmPeerBitfield(int pieceNumber, int SwarmPeerID){
+		for(int i=0;i< otherPeers.size();i++){
+			//if(SwarmPeerID == otherPeers.get(i).getPeerID())
+			//otherPeers.get(i).updateBitfield(pieceNumber);
+		}
+	}
+	
+	public void assignSwarmPeerBitfieldd(boolean[] bitfield, int SwarmPeerID){
+		for(int i=0;i< otherPeers.size();i++){
+			//if(SwarmPeerID == otherPeers.get(i).getPeerID())
+			//otherPeers.get(i).assignRecievedBitfield(bitfield);
+		}
+	}
+
+	public void requestRecieved(int pieceRequested, int senderID){
+		if(bitfield[pieceRequested] == true){
+		//Send piece from method or return somewhere else to handle
+		}
+		else{
+		//We don't have piece requested
+		}
+	}
+
+	public void pieceRecieved(int pieceRecieved, byte[] data){
+		bitfield[pieceRecieved] = true;
+		//Store data somewhere specific to peer, directrory
+	}
+
 }

@@ -1,6 +1,5 @@
 
 public class PieceMessage extends Message{
-	int senderID;
 	int pieceRecieved;
 	byte[] pieceNUM;
 	byte[] data; 
@@ -9,7 +8,6 @@ public class PieceMessage extends Message{
 		for(int i=0;i<4;i++)
 			pieceNUM[i] = Payload[i];
 		//pieceNUM = java.nio.ByteBuffer.wrap(pieceNUM).getInt();
-		this.senderID = senderID;
 		for(int i=0;i<Payload.length-4;i++)
 			data[i] = Payload[i+4];
 		//peer.pieceRecieved(pieceRecieved, data, senderID);

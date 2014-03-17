@@ -114,73 +114,71 @@ public class InputConnection extends Thread
 		return intPeerID;
 	}
 	
-//	public void waitForNormalMessage(){
-//		byte[] lengthT_P = new byte[4]; //Length of bytes representing length of message
-//		DataInputStream inputStream = null;
-//		try
-//		{
-//			inputStream = new DataInputStream(inputSocket.getInputStream());
-//		} 
-//		catch (IOException exception)
-//		{
-//			throw new RuntimeException(exception);		
-//		}
-//		for(int i=0;i<lengthT_P.length;i++){
-//			lengthT_P[i] = inputStream.readByte(); 
-//		}
-//		
-//		int lengthMessage = java.nio.ByteBuffer.wrap(lengthT_P).getInt();
-//		byte[] MType = new byte[1];
-//		MType[0] = inputStream.readByte();
-//	
-//		byte[] MPay;
-//		int TypeMessage = java.nio.ByteBuffer.wrap(MType).getInt();
-//		switch(TypeMessage){
-//			case 0: 
-//				//Set choke
-//				break;
-//			case 1:
-//				//Set unchoke
-//				break;
-//			case 2: 
-//				//Set interested
-//				break;
-//			case 3:
-//				//Set Uninterested
-//				break;
-//			case 4:
-//				MPay= new byte[lengthMessage-1];
-//				for(int i=0;i<MPay.length;i++){
-//					MPay[i] = inputStream.readByte(); 
-//				}
-//				HaveMessage HM = new HaveMessage(MPay, senderID, peer); //Need sender ID
-//				break;
-//			case 5: 
-//				MPay= new byte[lengthMessage-1];
-//				for(int i=0;i<<MPay.length;i++){
-//					MPay[i] = inputStream.readByte(); 
-//				}
-//				BitfieldMessage BM = new BitfiledMessage(MPay, senderID, peer);
-//				break;
-//			case 6:
-//				MPay= new byte[lengthMessage-1];
-//				for(int i=0;i<<MPay.length;i++){
-//					MPay[i] = inputStream.readByte(); 
-//				}
-//				RequestMessage RM = new RequestMessage(MPay);
-//				break;
-//			case 7:
-//				MPay= new byte[lengthMessage-1];
-//				for(int i=0;i<<MPay.length;i++){
-//					MPay[i] = inputStream.readByte(); 
-//				}
-//				PieceMessage PM = new PieceMessage(MPay);
-//				break;
-//			case default :
-//				break;
-//		}
+	public void waitForNormalMessage(){
+		byte[] lengthT_P = new byte[4]; //bytes representing length of message
+		DataInputStream inputStream = null;
+		try
+		{
+			inputStream = new DataInputStream(inputSocket.getInputStream());
+		} 
+		catch (IOException exception)
+		{
+			throw new RuntimeException(exception);		
+		}
+		for(int i=0;i<lengthT_P.length;i++){
+		//	lengthT_P[i] = inputStream.readByte(); 
+		}
 		
-	//}
+		int lengthMessage = java.nio.ByteBuffer.wrap(lengthT_P).getInt();
+		byte[] MType = new byte[1];
+		//MType[0] = inputStream.readByte();
+	
+		byte[] MPay;//Bytes representing payload length
+		int TypeMessage = java.nio.ByteBuffer.wrap(MType).getInt();//integer value representing message
+		switch(TypeMessage){
+			case 0: 
+				//Set choke
+				break;
+			case 1:
+				//Set unchoke
+				break;
+			case 2: 
+				//Set interested
+				break;
+			case 3:
+				//Set Uninterested
+				break;
+			case 4:
+				MPay= new byte[lengthMessage-1];
+				for(int i=0;i<MPay.length;i++){
+				//	MPay[i] = inputStream.readByte(); 
+				}
+				//HaveMessage HM = new HaveMessage(MPay, senderID, peer); //Need sender ID
+				break;
+			case 5: 
+				MPay= new byte[lengthMessage-1];
+				for(int i=0;i<MPay.length;i++){
+				//	MPay[i] = inputStream.readByte(); 
+				}
+				//BitfieldMessage BM = new BitfiledMessage(MPay, senderID, peer);
+				break;
+			case 6:
+				MPay= new byte[lengthMessage-1];
+				for(int i=0;i<MPay.length;i++){
+					//MPay[i] = inputStream.readByte(); 
+				}
+				//RequestMessage RM = new RequestMessage(MPay, senderID, peer);
+				break;
+			case 7:
+				MPay= new byte[lengthMessage-1];
+				for(int i=0;i<MPay.length;i++){
+					//MPay[i] = inputStream.readByte(); 
+				}
+				//PieceMessage PM = new PieceMessage(MPay, peer);
+				break;
+		}
+	}
+	
 	
 	public void waitForConnection()
 	{
@@ -224,4 +222,6 @@ public class InputConnection extends Thread
 	}
 	
 
+	
+	
 }
