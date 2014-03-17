@@ -5,3 +5,6 @@ Peer 1002 established connection with 1001
 input connection created successfully
 Waiting for connection
 Waiting for handshake message
+
+Preparing to establish outputconnection
+Output connection created
