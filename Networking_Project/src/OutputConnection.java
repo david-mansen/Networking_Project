@@ -3,6 +3,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Date;
 
 
 public class OutputConnection extends Thread
@@ -74,7 +75,8 @@ public class OutputConnection extends Thread
 				try
 				{
 					outputSocket = new Socket(targetPeer.getHostName(),targetPeer.getPortNum());
-					peer.writeToLogFile("Peer "+peer.getPeerID()+" established connection with "+targetPeer.getPeerID());
+					//peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+							//"] makes a connection to Peer [peer_ID "+targetPeer.getPeerID()+"].");
 				}
 				catch(IOException exception)
 				{

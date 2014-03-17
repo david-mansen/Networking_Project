@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Date;
 
 
 public class InputConnection extends Thread
@@ -107,6 +108,8 @@ public class InputConnection extends Thread
 			error.printStackTrace();
 		}
 		int intPeerID = Integer.parseInt(stringPeerID);
+		peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+				"] is connected from Peer [peer_ID "+intPeerID+"].");
 		handshakeReceived = true;
 		return intPeerID;
 	}

@@ -19,7 +19,6 @@ public class SwarmPeer {
 			this.portNum = portNum;
 			this.hasEntireFile = hasEntireFile;
 			
-			
 			initializeBitfield(numPieces);
 			
 			System.out.println("Peer " + peerID +"created");

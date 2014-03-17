@@ -1,6 +1,7 @@
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -85,6 +86,7 @@ public class Peer {
 		}
 	}
 	
+	
 	public synchronized void writeToLogFile(String log)
 	{
 		System.out.println("Writing to log...");
@@ -165,10 +167,12 @@ public class Peer {
 			int portNum = scanner.nextInt();
 			int hasEntireFileInteger= scanner.nextInt();
 			boolean hasEntireFile;
-			if(hasEntireFileInteger == 1){
+			if(hasEntireFileInteger == 1)
+			{
 				hasEntireFile = true;
 			}
-			else{
+			else
+			{
 				hasEntireFile = false;
 			}
 			if(this.peerID == peerID)
