@@ -22,5 +22,4 @@ tmp/
 *.cfg
 *.properties
 *.log
-Networking_Project/PeerInfo.cfg
-*.log
+
