@@ -12,22 +12,27 @@ public class InputConnection extends Thread
 	private ServerSocket serverSocket;
 	private Socket inputSocket;
 	private Peer peer;
+	private SwarmPeer senderPeer;
 	
 	private boolean handshakeReceived;
 	public boolean done;
+	
+	private int senderPeerID;
 	
 	public InputConnection(Peer peer)
 	{
 		done=false;
 		this.peer=peer;
 		serverSocket = null;
+		senderPeer = null;
 		handshakeReceived = false;
 		this.start(); //start the thread
 	}
-	public InputConnection(Peer peer, Socket existingSocket)
+	public InputConnection(Peer peer, Socket existingSocket, SwarmPeer senderPeer)
 	{
 		done=false;
-		this.peer=peer;
+		this.peer = peer;
+		this.senderPeer = senderPeer;
 		inputSocket = existingSocket;
 		handshakeReceived = false;
 		this.start(); //start the thread
@@ -37,11 +42,13 @@ public class InputConnection extends Thread
 	{
 		waitForConnection(); //only if connection not already established
 		
-		int peerID=waitForHandshakeMessage();//returns the peerID of connecting peer
+		int senderPeerID=waitForHandshakeMessage();//returns the peerID of connecting peer
+		
+		assignSenderPeer(senderPeerID);
 		
 		if(peer.getOutputConnection() == null)
 		{
-			peer.createOutputConnection(new OutputConnection(peer,inputSocket));
+			peer.createOutputConnection(new OutputConnection(peer,inputSocket,senderPeer));
 		}
 		waitForTestMessage();
 		peer.decrementNumPeersDownloading();
@@ -262,6 +269,18 @@ public class InputConnection extends Thread
 		return inputSocket;
 	}
 	
+	private void assignSenderPeer(int senderPeerID)
+	{
+		for(SwarmPeer senderPeer : peer.getOtherPeers())
+		{
+			if(senderPeer.getPeerID() == senderPeerID)
+			{
+				this.senderPeer = senderPeer;
+				return;
+			}	
+		}
+		peer.writeToLogFile("should have assigned sender peer");
+	}
 
 	
 	

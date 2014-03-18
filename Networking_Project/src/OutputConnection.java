@@ -9,24 +9,25 @@ import java.util.Date;
 public class OutputConnection extends Thread
 {
 	private Peer peer;
-	private SwarmPeer targetPeer;
+	private SwarmPeer receiverPeer;
 	private Socket outputSocket;
 	
 	public boolean done;
 	
-	public OutputConnection(Peer peer, SwarmPeer targetPeer)
+	public OutputConnection(Peer peer, SwarmPeer receiverPeer)
 	{
 		done=false;
 		this.peer=peer;
-		this.targetPeer=targetPeer;
+		this.receiverPeer=receiverPeer;
 		outputSocket = null;
 		this.start(); //start the thread
 	}
 	
-	public OutputConnection(Peer peer, Socket existingSocket)
+	public OutputConnection(Peer peer, Socket existingSocket, SwarmPeer receiverPeer)
 	{
 		done=true;
 		this.peer=peer;
+		this.receiverPeer = receiverPeer;
 		outputSocket = existingSocket;
 		this.start(); //start the thread
 	}
@@ -41,7 +42,7 @@ public class OutputConnection extends Thread
 		}
 		if(peer.getInputConnection() == null)
 		{
-			peer.createInputConnection(new InputConnection(peer,outputSocket));
+			peer.createInputConnection(new InputConnection(peer,outputSocket, receiverPeer));
 		}
 		TestMessage testMessage = new TestMessage("testing");
 		sendMessage(testMessage);
@@ -77,7 +78,7 @@ public class OutputConnection extends Thread
 			{
 				try
 				{
-					outputSocket = new Socket(targetPeer.getHostName(),targetPeer.getPortNum());
+					outputSocket = new Socket(receiverPeer.getHostName(),receiverPeer.getPortNum());
 					//peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 							//"] makes a connection to Peer [peer_ID "+targetPeer.getPeerID()+"].");
 				}

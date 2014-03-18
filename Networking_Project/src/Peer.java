@@ -367,5 +367,10 @@ public class Peer {
 		bitfield[pieceRecieved] = true;
 		//Store data somewhere specific to peer, directrory
 	}
+	
+	public ArrayList<SwarmPeer> getOtherPeers()
+	{
+		return otherPeers;
+	}
 
 }
