@@ -43,6 +43,9 @@ public class OutputConnection extends Thread
 		{
 			peer.createInputConnection(new InputConnection(peer,outputSocket));
 		}
+		TestMessage testMessage = new TestMessage("testing");
+		sendMessage(testMessage);
+		
 		peer.decrementNumPeersDownloading();
 		int i = 0;
 		while(i!=1)

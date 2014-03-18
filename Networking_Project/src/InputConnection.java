@@ -43,6 +43,7 @@ public class InputConnection extends Thread
 		{
 			peer.createOutputConnection(new OutputConnection(peer,inputSocket));
 		}
+		waitForTestMessage();
 		peer.decrementNumPeersDownloading();
 		int i=0;
 		while(i!=1)
@@ -112,6 +113,46 @@ public class InputConnection extends Thread
 				"] is connected from Peer [peer_ID "+intPeerID+"].");
 		handshakeReceived = true;
 		return intPeerID;
+	}
+	
+	public void waitForTestMessage()
+	{
+		byte[] inputBytes = new byte[7];
+		int numBytes;
+		DataInputStream inputStream = null;
+		try
+		{
+			inputStream = new DataInputStream(inputSocket.getInputStream());
+		} 
+		catch (IOException exception)
+		{
+			throw new RuntimeException(exception);
+		}
+		do{
+			try
+			{
+				numBytes = inputStream.read(inputBytes);
+				System.out.println("num bytes read:" +numBytes);
+			}
+			catch(Exception exception)
+			{
+				throw new RuntimeException(exception);
+			}
+			
+			System.out.println("waiting on handshake");
+		}while(numBytes != 7);
+		// get info from handshake message
+		String stringMessage = "didnt work";
+		try
+		{
+			stringMessage = new String(inputBytes,"UTF-8");
+		}
+		catch(UnsupportedEncodingException error)
+		{
+			error.printStackTrace();
+		}
+		
+		peer.writeToLogFile(stringMessage);
 	}
 	
 	public void waitForNormalMessage(){

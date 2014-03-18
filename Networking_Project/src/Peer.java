@@ -44,6 +44,11 @@ public class Peer {
 		inputConnection1=null;
 		outputConnection1=null;
 		numPeersDownloading = 2;
+		long currentUnchokingTimer = 0;
+		long currentOptimisticUnchokingTimer = 0;
+		long lastTimeMilliseconds = 0;
+		long thisTimeMilliseconds = 0;
+		long deltaTimeMilliseconds = 0;
 		
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
@@ -56,10 +61,28 @@ public class Peer {
 		initializeConnections();
 		int i=0;
 		while(i!=1){
-			System.out.print("");
+			
+			thisTimeMilliseconds = System.currentTimeMillis();
+			deltaTimeMilliseconds = thisTimeMilliseconds - lastTimeMilliseconds;
+			lastTimeMilliseconds = thisTimeMilliseconds;
+			
+			currentUnchokingTimer = currentUnchokingTimer + deltaTimeMilliseconds;
+			currentOptimisticUnchokingTimer = currentOptimisticUnchokingTimer + deltaTimeMilliseconds;
+			
+			if((currentUnchokingTimer/1000) >= unchokingInterval )
+			{
+				currentUnchokingTimer = 0;
+				System.out.println("5 seconds passed");
+			}
+			if((currentOptimisticUnchokingTimer/1000) >= optimisticUnchokingInterval)
+			{
+				currentOptimisticUnchokingTimer = 0;
+				System.out.println("15 seconds passed");
+			}
+
+			
 			if(numPeersDownloading <= 0)
 			{
-				System.out.println("should have exited");
 				System.out.println("Exiting");
 				outputConnection1.interrupt();
 				inputConnection1.interrupt();

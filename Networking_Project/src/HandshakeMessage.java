@@ -15,10 +15,7 @@ public class HandshakeMessage extends Message{
 		zeroField = new byte[23];
 		Arrays.fill(zeroField,(byte)0);
 	}
-	public HandshakeMessage(String handshakeString)
-	{
-		
-	}
+	
 	
 	@Override
 	public String toString()
