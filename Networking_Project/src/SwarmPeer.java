@@ -12,6 +12,9 @@ public class SwarmPeer {
 		//other fields 
 		private boolean[] bitfield;
 		
+		private boolean preferred;
+		
+		
 		public SwarmPeer(int peerID, String hostName, int portNum, boolean hasEntireFile, int numPieces) 
 		{
 			this.peerID = peerID;

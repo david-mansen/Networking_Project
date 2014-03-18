@@ -32,27 +32,31 @@ public class Peer {
 	
 	
 	private ArrayList<SwarmPeer> otherPeers;
-	private ArrayList<SwarmPeer> preferredPeers;
 	
 	private OutputConnection outputConnection1;
 	private InputConnection inputConnection1;
+	
+	private ArrayList<OutputConnection> outputConnections;
+	private ArrayList<InputConnection> inputConnections;
 	
 	private int numPeersDownloading;
 	
 	public Peer(int peerID) 
 	{
-		inputConnection1=null;
-		outputConnection1=null;
 		numPeersDownloading = 2;
+		//timers
 		long currentUnchokingTimer = 0;
 		long currentOptimisticUnchokingTimer = 0;
 		long lastTimeMilliseconds = 0;
 		long thisTimeMilliseconds = 0;
 		long deltaTimeMilliseconds = 0;
-		
+		// end timers
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
 		
+		outputConnections = new ArrayList<OutputConnection>();
+		inputConnections = new ArrayList<InputConnection>();
+
 		readConfigFiles();  //this reads the settings for this peer as well as initialize the other peers
 		
 		initializeBitfield();
