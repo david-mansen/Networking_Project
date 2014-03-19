@@ -48,7 +48,7 @@ public class InputConnection extends Thread
 		
 		if(peer.getOutputConnection() == null)
 		{
-			peer.createOutputConnection(new OutputConnection(peer,inputSocket,senderPeer));
+			peer.addOutputConnection(new OutputConnection(peer,inputSocket,senderPeer));
 		}
 		waitForTestMessage();
 		peer.decrementNumPeersDownloading();
@@ -232,18 +232,7 @@ public class InputConnection extends Thread
 	{
 		if(inputSocket == null)
 		{
-			try
-			{
-				serverSocket = new ServerSocket(peer.getPortNum());
-			}
-			catch(UnknownHostException exception)
-			{
-				throw new RuntimeException(exception);
-			}
-			catch(IOException exception)
-			{
-				throw new RuntimeException(exception);
-			}
+			serverSocket = peer.getServerSocket();
 			
 			while(inputSocket==null)
 			{

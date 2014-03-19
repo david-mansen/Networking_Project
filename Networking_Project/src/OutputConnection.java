@@ -35,6 +35,7 @@ public class OutputConnection extends Thread
 	public void run()
 	{
 		establishConnection();
+		peer.writeToLogFile("made it");
 		if(outputSocket!=null)
 		{
 			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
@@ -42,7 +43,7 @@ public class OutputConnection extends Thread
 		}
 		if(peer.getInputConnection() == null)
 		{
-			peer.createInputConnection(new InputConnection(peer,outputSocket, receiverPeer));
+			peer.addInputConnection(new InputConnection(peer,outputSocket, receiverPeer));
 		}
 		TestMessage testMessage = new TestMessage("testing");
 		sendMessage(testMessage);

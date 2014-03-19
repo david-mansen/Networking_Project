@@ -2,6 +2,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,18 +43,42 @@ public class Peer {
 	
 	private int numPeersDownloading;
 	
+	private ServerSocket serverSocket;
+	
 	public Peer(int peerID) 
 	{
 		numPeersDownloading = 2;
 		//timers
 		long currentUnchokingTimer = 0;
 		long currentOptimisticUnchokingTimer = 0;
+		long currentExitTimer = 0;
 		long lastTimeMilliseconds = 0;
 		long thisTimeMilliseconds = 0;
 		long deltaTimeMilliseconds = 0;
+		
+		Timer exitTimer = new Timer();
+		exitTimer.scheduleAtFixedRate(new TimerTask()
+			{
+				@Override
+				public void run()
+				{
+					endProgram();
+				}
+			}, 15*1000, 15*1000);
+		
+		
 		// end timers
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
+		
+		try
+		{
+			serverSocket = new ServerSocket(portNum);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 		
 		outputConnections = new ArrayList<OutputConnection>();
 		inputConnections = new ArrayList<InputConnection>();
@@ -72,6 +98,7 @@ public class Peer {
 			
 			currentUnchokingTimer = currentUnchokingTimer + deltaTimeMilliseconds;
 			currentOptimisticUnchokingTimer = currentOptimisticUnchokingTimer + deltaTimeMilliseconds;
+			currentExitTimer = currentExitTimer + deltaTimeMilliseconds;
 			
 			if((currentUnchokingTimer/1000) >= unchokingInterval )
 			{
@@ -83,15 +110,22 @@ public class Peer {
 				currentOptimisticUnchokingTimer = 0;
 				System.out.println("15 seconds passed");
 			}
+			//if((currentExitTimer/1000) >= 30)
+			//{
+		//		outputConnection1.interrupt();
+			//	inputConnection1.interrupt();
+			//}
 
 			
-			if(numPeersDownloading <= 0)
-			{
-				System.out.println("Exiting");
-				outputConnection1.interrupt();
-				inputConnection1.interrupt();
-				System.exit(0);
-			}
+//			if(numPeersDownloading <= 0)
+//			{
+//				System.out.println("Exiting");
+//				if(outputConnection1 != null)
+//				outputConnection1.interrupt();
+//				if(inputConnection1 != null)
+//				inputConnection1.interrupt();
+//				System.exit(0);
+//			}
 		}
 	}
 	
@@ -103,11 +137,13 @@ public class Peer {
 			{
 				if(connectPeer.getPeerID() > peerID)
 				{
-					inputConnection1 = new InputConnection(this);
+					InputConnection inputConnection = new InputConnection(this);
+					addInputConnection(inputConnection);
 				}
 				else
 				{
-					outputConnection1 = new OutputConnection(this,connectPeer);
+					OutputConnection outputConnection = new OutputConnection(this, connectPeer);
+					addOutputConnection(outputConnection);
 				}
 			}
 		}
@@ -314,14 +350,14 @@ public class Peer {
 		return bitfield;
 	}
 	
-	public synchronized void createInputConnection(InputConnection inputConnection)
+	public synchronized void addInputConnection(InputConnection inputConnection)
 	{
-		inputConnection1=inputConnection;
+		inputConnections.add(inputConnection);
 	}
 	
-	public synchronized void createOutputConnection(OutputConnection outputConnection)
+	public synchronized void addOutputConnection(OutputConnection outputConnection)
 	{
-		outputConnection1=outputConnection;
+		outputConnections.add(outputConnection);
 	}
 	
 	public synchronized OutputConnection getOutputConnection()
@@ -375,6 +411,27 @@ public class Peer {
 	public ArrayList<SwarmPeer> getOtherPeers()
 	{
 		return otherPeers;
+	}
+	
+	public synchronized ServerSocket getServerSocket()
+	{
+		System.out.println("server socket");
+		return serverSocket;
+	}
+	
+	private void endProgram()
+	{
+		System.out.println("Exiting");
+		for(OutputConnection outputConnection : outputConnections)
+		{
+			if(outputConnection != null) outputConnection.interrupt();
+		}
+		for(InputConnection inputConnection : inputConnections)
+		{
+			if(inputConnection != null) inputConnection.interrupt();
+		}
+		
+		System.exit(0);
 	}
 
 }
