@@ -277,6 +277,7 @@ public class Peer {
 				bitfield[i]=false;
 			}
 		}
+		
 	}
 	
 

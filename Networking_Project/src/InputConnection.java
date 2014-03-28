@@ -83,6 +83,12 @@ public class InputConnection extends Thread
 			}
 			if(message instanceof BitfieldMessage )
 			{
+				boolean[] bitfield;
+				bitfield = ((BitfieldMessage) message).getBitfield();
+				for(int index = 0; index< bitfield.length; index++)
+				{
+					System.out.println("received bitfield index: " +index+" value: "+ bitfield[index]);
+				}
 				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 						"] received a bitfield message from [peer_ID "+senderPeer.getPeerID()+"].");
 			}
@@ -216,7 +222,8 @@ public class InputConnection extends Thread
 			try
 			{
 				byte tempByte = inputStream.readByte();
-				payloadBytes[lengthIndex] = tempByte;
+				System.out.println("read byte"+tempByte);
+				payloadBytes[payloadIndex] = tempByte;
 				payloadIndex++;
 			}
 			catch(Exception e)
@@ -224,6 +231,7 @@ public class InputConnection extends Thread
 				//do nothing
 			}
 		}
+		
 		// end payload
 		switch(type)
 		{
@@ -247,6 +255,10 @@ public class InputConnection extends Thread
 				return null;
 				
 			case 5:
+				for(int i = 0; i<payloadBytes.length; i++)
+				{
+					System.out.println("first input: "+payloadBytes[i]);
+				}
 				BitfieldMessage bitfieldMessage = new BitfieldMessage(payloadBytes);
 				return bitfieldMessage;
 				

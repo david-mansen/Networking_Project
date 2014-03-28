@@ -60,8 +60,15 @@ public class OutputConnection extends Thread
 		NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
 		sendMessage(notInterestedMessage);
 		
+		for(int i = 0; i< peer.getBitfield().length; i++)
+		{
+			System.out.println("output1: "+peer.getBitfield()[i]);
+		}
 		BitfieldMessage bitfieldMessage = new BitfieldMessage(peer.getBitfield());
-		
+		for(int i = 0; i< bitfieldMessage.getBitfield().length; i++)
+		{
+			System.out.println("output2: "+bitfieldMessage.getBitfield()[i]);
+		}
 		sendMessage(bitfieldMessage);
 		
 		peer.decrementNumPeersDownloading();
