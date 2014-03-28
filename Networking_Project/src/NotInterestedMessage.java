@@ -1,15 +1,17 @@
+import java.nio.ByteBuffer;
+
 
 
 public class NotInterestedMessage extends Message{
 	
 	private int length;
-	private int type;
+	private byte type;
 	//no payload
 	
 	public NotInterestedMessage()
 	{
 		length = 1;
-		type = 3;
+		type = 0x03;
 		//no payload
 	}
 	
@@ -24,7 +26,16 @@ public class NotInterestedMessage extends Message{
 
 	@Override
 	public byte[] toByteArray() {
-		// TODO Auto-generated method stub
-		return null;
+		ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
+		lengthBuffer.putInt(length);
+		byte[] lengthBytes = lengthBuffer.array();
+		
+		byte[] bytes = new byte[5];
+		for(int i = 0; i<4; i++)
+		{
+			bytes[i] = lengthBytes[i];
+		}
+		bytes[4] = type;
+		return bytes;
 	}
 }

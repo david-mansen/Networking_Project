@@ -54,6 +54,12 @@ public class OutputConnection extends Thread
 		UnchokeMessage unchokeMessage = new UnchokeMessage();
 		sendMessage(unchokeMessage);
 		
+		InterestedMessage interestedMessage = new InterestedMessage();
+		sendMessage(interestedMessage);
+		
+		NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+		sendMessage(notInterestedMessage);
+		
 		peer.decrementNumPeersDownloading();
 		int i = 0;
 		while(i!=1)

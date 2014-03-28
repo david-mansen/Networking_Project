@@ -67,6 +67,16 @@ public class InputConnection extends Thread
 				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 						"] is unchoked by [peer_ID "+senderPeer.getPeerID()+"].");
 			}
+			if(message instanceof InterestedMessage)
+			{
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] received an 'interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
+			}
+			if(message instanceof NotInterestedMessage)
+			{
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] received a 'not interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
+			}
 		}
 	}
 	
@@ -217,10 +227,12 @@ public class InputConnection extends Thread
 				return unchokeMessage;
 				
 			case 2:
-				return null;
+				InterestedMessage interestedMessage = new InterestedMessage();
+				return interestedMessage;
 				
 			case 3:
-				return null;
+				NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+				return notInterestedMessage;
 				
 			case 4:
 				return null;
