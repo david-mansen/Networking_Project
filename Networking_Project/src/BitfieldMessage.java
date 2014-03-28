@@ -29,6 +29,10 @@ public class BitfieldMessage extends Message{
 			bitfield[j+7] = ((payload[i] & 0x80) != 0);
 			j = j+8;
 		}
+		for(int i = 0; i<bitfield.length; i++)
+		{
+			System.out.println(bitfield[i]);
+		}
 	}
 
 
@@ -49,58 +53,59 @@ public class BitfieldMessage extends Message{
 		int j = 0;
 		for(int i=0; i<bitfield.length; i++)
 		{
-			System.out.println("payload length: "+payload.length);
-			System.out.println("j: "+j);
-			
-			if(payload.length <= j) break;
+			if(bitfield.length <= j) break;
 			if(bitfield[j] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 0));
 			}
 			
-			if(payload.length <= j+1) break;
+			if(bitfield.length <= j+1) break;
 			if(bitfield[j+1] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 1));
 			}
 			
-			if(payload.length <= j+2) break;
+			if(bitfield.length <= j+2) break;
 			if(bitfield[j+2] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 2));
+
 			}
 			
-			if(payload.length <= j+3) break;
+			if(bitfield.length <= j+3) break;
 			if(bitfield[j+3] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 3));
+
 			}
 			
-			if(payload.length <= j+4) break;
+			if(bitfield.length <= j+4) break;
 			if(bitfield[j+4] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 4));
+
 			}
 			
-			if(payload.length <= j+5) break;
+			if(bitfield.length <= j+5) break;
 			if(bitfield[j+5] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 5));
+
 			}
 			
-			if(payload.length <= j+6) break;
+			if(bitfield.length <= j+6) break;
 			if(bitfield[j+6] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 6));
+
 			}
 			
-			if(payload.length <= j+7) break;
+			if(bitfield.length <= j+7) break;
 			if(bitfield[j+7] ==true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 7));
 			}
 			j = j+8;
-			System.out.println("payload: "+payload[i]);
 		}
 		
 		//create return array
@@ -112,11 +117,6 @@ public class BitfieldMessage extends Message{
 		bytes[4] = type;
 		for(int i=5; i<payload.length; i++)
 		{
-			System.out.println("i: "+i);
-			System.out.println("payload length: "+payload.length);
-			System.out.println("bytes length: "+bytes.length);
-			System.out.println("inserting: "+payload[i-5]);
-
 			bytes[i] = payload[i-5];
 		}
 		for(int i = 0; i< bytes.length; i++)
