@@ -48,26 +48,7 @@ public class Peer {
 	public Peer(int peerID) 
 	{
 		numPeersDownloading = 2;
-		//timers
-		long currentUnchokingTimer = 0;
-		long currentOptimisticUnchokingTimer = 0;
-		long currentExitTimer = 0;
-		long lastTimeMilliseconds = 0;
-		long thisTimeMilliseconds = 0;
-		long deltaTimeMilliseconds = 0;
 		
-		Timer exitTimer = new Timer();
-		exitTimer.scheduleAtFixedRate(new TimerTask()
-			{
-				@Override
-				public void run()
-				{
-					endProgram();
-				}
-			}, 15*1000, 15*1000);
-		
-		
-		// end timers
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
 		
@@ -88,28 +69,14 @@ public class Peer {
 		initializeBitfield();
 		initializeDirectory();
 		
+		setTimers();
+		
 		initializeConnections();
+		
 		int i=0;
 		while(i!=1){
 			
-			thisTimeMilliseconds = System.currentTimeMillis();
-			deltaTimeMilliseconds = thisTimeMilliseconds - lastTimeMilliseconds;
-			lastTimeMilliseconds = thisTimeMilliseconds;
-			
-			currentUnchokingTimer = currentUnchokingTimer + deltaTimeMilliseconds;
-			currentOptimisticUnchokingTimer = currentOptimisticUnchokingTimer + deltaTimeMilliseconds;
-			currentExitTimer = currentExitTimer + deltaTimeMilliseconds;
-			
-			if((currentUnchokingTimer/1000) >= unchokingInterval )
-			{
-				currentUnchokingTimer = 0;
-				System.out.println("5 seconds passed");
-			}
-			if((currentOptimisticUnchokingTimer/1000) >= optimisticUnchokingInterval)
-			{
-				currentOptimisticUnchokingTimer = 0;
-				System.out.println("15 seconds passed");
-			}
+
 			//if((currentExitTimer/1000) >= 30)
 			//{
 		//		outputConnection1.interrupt();
@@ -217,7 +184,6 @@ public class Peer {
 		try
 		{
 			scanner = new Scanner(new File("PeerInfo.cfg"));
-			
 		}
 		catch(FileNotFoundException error)
 		{
@@ -352,22 +318,26 @@ public class Peer {
 	
 	public synchronized void addInputConnection(InputConnection inputConnection)
 	{
-		inputConnections.add(inputConnection);
+		inputConnection1 = inputConnection;
+		//inputConnections.add(inputConnection);
 	}
 	
 	public synchronized void addOutputConnection(OutputConnection outputConnection)
 	{
-		outputConnections.add(outputConnection);
+		outputConnection1 = outputConnection;
+		//outputConnections.add(outputConnection);
 	}
 	
 	public synchronized OutputConnection getOutputConnection()
 	{
 		return outputConnection1;
+		//return outputConnections.get(0);
 	}
 	
 	public synchronized InputConnection getInputConnection()
 	{
 		return inputConnection1;
+		//return inputConnections.get(0);
 	}
 	
 	public synchronized void decrementNumPeersDownloading()
@@ -415,7 +385,6 @@ public class Peer {
 	
 	public synchronized ServerSocket getServerSocket()
 	{
-		System.out.println("server socket");
 		return serverSocket;
 	}
 	
@@ -432,6 +401,42 @@ public class Peer {
 		}
 		
 		System.exit(0);
+	}
+	
+	private void setTimers()
+	{
+		//timers
+				Timer exitTimer = new Timer();
+				exitTimer.scheduleAtFixedRate(new TimerTask()
+					{
+						@Override
+						public void run()
+						{
+							endProgram();
+						}
+					}, 45*1000, 45*1000);
+				
+				Timer unchokingTimer = new Timer();
+				unchokingTimer.scheduleAtFixedRate(new TimerTask()
+					{
+						@Override
+						public void run()
+						{
+							System.out.println("unchoking");
+						}
+					}, unchokingInterval*1000, unchokingInterval*1000);
+				
+				Timer optimisticUnchokingTimer = new Timer();
+				optimisticUnchokingTimer.scheduleAtFixedRate(new TimerTask()
+					{
+						@Override
+						public void run()
+						{
+							System.out.println("optimistic unchoking");
+						}
+					}, optimisticUnchokingInterval*1000, optimisticUnchokingInterval*1000);
+				
+				// end timers
 	}
 
 }

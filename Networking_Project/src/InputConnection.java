@@ -26,6 +26,7 @@ public class InputConnection extends Thread
 		serverSocket = null;
 		senderPeer = null;
 		handshakeReceived = false;
+		waitForConnection(); //only if connection not already established
 		this.start(); //start the thread
 	}
 	public InputConnection(Peer peer, Socket existingSocket, SwarmPeer senderPeer)
@@ -39,15 +40,14 @@ public class InputConnection extends Thread
 	}
 	
 	public void run()
-	{
-		waitForConnection(); //only if connection not already established
-		
+	{	
 		int senderPeerID=waitForHandshakeMessage();//returns the peerID of connecting peer
 		
 		assignSenderPeer(senderPeerID);
 		
 		if(peer.getOutputConnection() == null)
 		{
+			peer.writeToLogFile("input connection established first, now adding output");
 			peer.addOutputConnection(new OutputConnection(peer,inputSocket,senderPeer));
 		}
 		waitForTestMessage();
@@ -230,25 +230,23 @@ public class InputConnection extends Thread
 	
 	public void waitForConnection()
 	{
-		if(inputSocket == null)
+		
+		serverSocket = peer.getServerSocket();
+		
+		while(inputSocket==null)
 		{
-			serverSocket = peer.getServerSocket();
-			
-			while(inputSocket==null)
+			try
 			{
-				try
-				{
-					System.out.println("connection established on input");
-					inputSocket = serverSocket.accept();
-				}
-				catch(UnknownHostException exception)
-				{
-					throw new RuntimeException(exception);
-				}
-				catch(IOException exception)
-				{
-					throw new RuntimeException(exception);
-				}
+				System.out.println("connection established on input");
+				inputSocket = serverSocket.accept();
+			}
+			catch(UnknownHostException exception)
+			{
+				throw new RuntimeException(exception);
+			}
+			catch(IOException exception)
+			{
+				throw new RuntimeException(exception);
 			}
 		}
 	}
