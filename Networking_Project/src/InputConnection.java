@@ -51,7 +51,7 @@ public class InputConnection extends Thread
 		{
 			peer.addOutputConnection(new OutputConnection(peer,inputSocket,senderPeer));
 		}
-		waitForTestMessage();
+		
 		peer.decrementNumPeersDownloading();
 		int i=0;
 		while(i!=1)
@@ -73,19 +73,22 @@ public class InputConnection extends Thread
 		{
 			throw new RuntimeException(exception);
 		}
-		do{
+		
+		int index = 0;
+		while(index < 32)
+		{
 			try
 			{
-				numBytes = inputStream.read(inputBytes);
-				System.out.println("num bytes read:" +numBytes);
+				byte tempByte = inputStream.readByte();
+				inputBytes[index] = tempByte;
+				index++;
+				System.out.println(tempByte);
 			}
-			catch(Exception exception)
+			catch(Exception e)
 			{
-				throw new RuntimeException(exception);
+				//do nothing
 			}
-			
-			System.out.println("waiting on handshake");
-		}while(numBytes != 32);
+		}
 		// get info from handshake message
 		byte[] helloBytes = new byte[5];
 		byte[] zeroFieldBytes = new byte [23];
@@ -123,44 +126,10 @@ public class InputConnection extends Thread
 		return intPeerID;
 	}
 	
-	public void waitForTestMessage()
+	public void waitForMessage()
 	{
-		byte[] inputBytes = new byte[7];
-		int numBytes;
-		DataInputStream inputStream = null;
-		try
-		{
-			inputStream = new DataInputStream(inputSocket.getInputStream());
-		} 
-		catch (IOException exception)
-		{
-			throw new RuntimeException(exception);
-		}
-		do{
-			try
-			{
-				numBytes = inputStream.read(inputBytes);
-				System.out.println("num bytes read:" +numBytes);
-			}
-			catch(Exception exception)
-			{
-				throw new RuntimeException(exception);
-			}
-			
-			System.out.println("waiting on handshake");
-		}while(numBytes != 7);
-		// get info from handshake message
-		String stringMessage = "didnt work";
-		try
-		{
-			stringMessage = new String(inputBytes,"UTF-8");
-		}
-		catch(UnsupportedEncodingException error)
-		{
-			error.printStackTrace();
-		}
 		
-		peer.writeToLogFile(stringMessage);
+		
 	}
 	
 	public void waitForNormalMessage(){

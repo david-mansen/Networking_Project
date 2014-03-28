@@ -94,7 +94,7 @@ public class Peer {
 	{
 		for(SwarmPeer connectPeer : otherPeers)
 		{
-			if(connectPeer.getPeerID() < 1004)
+			if(connectPeer.getPeerID() < 1003)
 			{
 				if(connectPeer.getPeerID() > peerID)
 				{
@@ -418,7 +418,7 @@ public class Peer {
 						{
 							endProgram();
 						}
-					}, 45*1000, 45*1000);
+					}, 70*1000, 70*1000);
 				
 				Timer unchokingTimer = new Timer();
 				unchokingTimer.scheduleAtFixedRate(new TimerTask()
