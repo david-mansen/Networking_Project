@@ -26,7 +26,6 @@ public class InputConnection extends Thread
 		serverSocket = null;
 		senderPeer = null;
 		handshakeReceived = false;
-		waitForConnection(); //only if connection not already established
 		this.start(); //start the thread
 	}
 	public InputConnection(Peer peer, Socket existingSocket, SwarmPeer senderPeer)
@@ -40,14 +39,16 @@ public class InputConnection extends Thread
 	}
 	
 	public void run()
-	{	
+	{
+		//peer.writeToLogFile("waiting for connection");
+		waitForConnection(); //only if connection not already established
+		//peer.writeToLogFile("established connection");
 		int senderPeerID=waitForHandshakeMessage();//returns the peerID of connecting peer
 		
 		assignSenderPeer(senderPeerID);
 		
-		if(peer.getOutputConnection() == null)
+		if(peer.getOutputConnection(senderPeer) == null)
 		{
-			peer.writeToLogFile("input connection established first, now adding output");
 			peer.addOutputConnection(new OutputConnection(peer,inputSocket,senderPeer));
 		}
 		waitForTestMessage();
@@ -230,31 +231,45 @@ public class InputConnection extends Thread
 	
 	public void waitForConnection()
 	{
-		
-		serverSocket = peer.getServerSocket();
-		
-		while(inputSocket==null)
+		if(serverSocket == null)
 		{
-			try
+			serverSocket = peer.getServerSocket();
+//			try
+//			{
+//				serverSocket = new ServerSocket(peer.getPortNum());
+//			}
+//			catch(UnknownHostException exception)
+//			{
+//				throw new RuntimeException(exception);
+//			}
+//			catch(IOException exception)
+//			{
+//				throw new RuntimeException(exception);
+//			}
+		}
+		
+		if(inputSocket == null)
+		{
+			while(inputSocket==null)
 			{
-				System.out.println("connection established on input");
-				inputSocket = serverSocket.accept();
-			}
-			catch(UnknownHostException exception)
-			{
-				throw new RuntimeException(exception);
-			}
-			catch(IOException exception)
-			{
-				throw new RuntimeException(exception);
+				System.out.println("testing block");
+				try
+				{
+					inputSocket = serverSocket.accept();
+				}
+				catch(UnknownHostException exception)
+				{
+					throw new RuntimeException(exception);
+				}
+				catch(IOException exception)
+				{
+					throw new RuntimeException(exception);
+				}
 			}
 		}
 	}
 
-	public Socket getSocket()
-	{
-		return inputSocket;
-	}
+	
 	
 	private void assignSenderPeer(int senderPeerID)
 	{
@@ -269,6 +284,14 @@ public class InputConnection extends Thread
 		peer.writeToLogFile("should have assigned sender peer");
 	}
 
+	public synchronized SwarmPeer getSenderPeer()
+	{
+		return senderPeer;
+	}
 	
+	public synchronized Socket getSocket()
+	{
+		return inputSocket;
+	}
 	
 }

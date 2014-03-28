@@ -52,19 +52,13 @@ public class Peer {
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
 		
-		try
-		{
-			serverSocket = new ServerSocket(portNum);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-		
 		outputConnections = new ArrayList<OutputConnection>();
 		inputConnections = new ArrayList<InputConnection>();
 
 		readConfigFiles();  //this reads the settings for this peer as well as initialize the other peers
+		
+		initServerSocket();
+		
 		
 		initializeBitfield();
 		initializeDirectory();
@@ -100,7 +94,7 @@ public class Peer {
 	{
 		for(SwarmPeer connectPeer : otherPeers)
 		{
-			if(connectPeer.getPeerID() < 1003)
+			if(connectPeer.getPeerID() < 1004)
 			{
 				if(connectPeer.getPeerID() > peerID)
 				{
@@ -318,26 +312,36 @@ public class Peer {
 	
 	public synchronized void addInputConnection(InputConnection inputConnection)
 	{
-		inputConnection1 = inputConnection;
-		//inputConnections.add(inputConnection);
+		inputConnections.add(inputConnection);
 	}
 	
 	public synchronized void addOutputConnection(OutputConnection outputConnection)
 	{
-		outputConnection1 = outputConnection;
-		//outputConnections.add(outputConnection);
+		outputConnections.add(outputConnection);
 	}
 	
-	public synchronized OutputConnection getOutputConnection()
+	public synchronized OutputConnection getOutputConnection(SwarmPeer connectedPeer)
 	{
-		return outputConnection1;
-		//return outputConnections.get(0);
+		for(OutputConnection outputConnection : outputConnections)
+		{
+			if(outputConnection.getReceiverPeer() == connectedPeer)
+			{
+				return outputConnection;
+			}
+		}
+		return null;
 	}
 	
-	public synchronized InputConnection getInputConnection()
+	public synchronized InputConnection getInputConnection(SwarmPeer connectedPeer)
 	{
-		return inputConnection1;
-		//return inputConnections.get(0);
+		for(InputConnection inputConnection : inputConnections)
+		{
+			if(inputConnection.getSenderPeer() == connectedPeer)
+			{
+				return inputConnection;
+			}
+		}
+		return null;
 	}
 	
 	public synchronized void decrementNumPeersDownloading()
@@ -378,7 +382,7 @@ public class Peer {
 		//Store data somewhere specific to peer, directrory
 	}
 	
-	public ArrayList<SwarmPeer> getOtherPeers()
+	public synchronized ArrayList<SwarmPeer> getOtherPeers()
 	{
 		return otherPeers;
 	}
@@ -439,4 +443,15 @@ public class Peer {
 				// end timers
 	}
 
+	private void initServerSocket()
+	{
+		try
+		{
+			serverSocket = new ServerSocket(portNum);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
 }

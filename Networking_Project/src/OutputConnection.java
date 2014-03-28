@@ -34,14 +34,16 @@ public class OutputConnection extends Thread
 	
 	public void run()
 	{
+		//peer.writeToLogFile("initiating connection...");
 		establishConnection();
-		peer.writeToLogFile("made it");
+		//peer.writeToLogFile("initiated connection");
+
 		if(outputSocket!=null)
 		{
 			HandshakeMessage handshake = new HandshakeMessage(peer.getPeerID());
 			sendMessage(handshake);
 		}
-		if(peer.getInputConnection() == null)
+		if(peer.getInputConnection(receiverPeer) == null)
 		{
 			peer.addInputConnection(new InputConnection(peer,outputSocket, receiverPeer));
 		}
@@ -91,9 +93,13 @@ public class OutputConnection extends Thread
 	}
 	
 
-	public Socket getSocket() {
+	public synchronized Socket getSocket() {
 		return outputSocket;
 	}
 	
+	public synchronized SwarmPeer getReceiverPeer()
+	{
+		return receiverPeer;
+	}
 	
 }
