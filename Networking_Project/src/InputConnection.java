@@ -77,6 +77,15 @@ public class InputConnection extends Thread
 				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 						"] received a 'not interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
 			}
+			if(message instanceof HaveMessage)
+			{
+				
+			}
+			if(message instanceof BitfieldMessage )
+			{
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] received a bitfield message from [peer_ID "+senderPeer.getPeerID()+"].");
+			}
 		}
 	}
 	
@@ -238,7 +247,8 @@ public class InputConnection extends Thread
 				return null;
 				
 			case 5:
-				return null;
+				BitfieldMessage bitfieldMessage = new BitfieldMessage(payloadBytes);
+				return bitfieldMessage;
 				
 			case 6:
 				return null;
