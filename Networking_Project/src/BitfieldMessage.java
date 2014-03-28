@@ -27,6 +27,13 @@ public class BitfieldMessage extends Message{
 		
 		return null;
 	}
+
+
+	@Override
+	public byte[] toByteArray() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 	
 }

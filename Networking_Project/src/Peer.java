@@ -45,6 +45,8 @@ public class Peer {
 	
 	private ServerSocket serverSocket;
 	
+	private int forceExitTime = 20;
+	
 	public Peer(int peerID) 
 	{
 		numPeersDownloading = 2;
@@ -418,7 +420,7 @@ public class Peer {
 						{
 							endProgram();
 						}
-					}, 70*1000, 70*1000);
+					}, forceExitTime*1000, forceExitTime*1000);
 				
 				Timer unchokingTimer = new Timer();
 				unchokingTimer.scheduleAtFixedRate(new TimerTask()

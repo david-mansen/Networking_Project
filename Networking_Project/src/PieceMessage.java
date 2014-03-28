@@ -17,4 +17,11 @@ public class PieceMessage extends Message{
 	public String toString(){
 		return null;
 	}
+
+
+	@Override
+	public byte[] toByteArray() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

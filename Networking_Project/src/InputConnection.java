@@ -56,7 +56,17 @@ public class InputConnection extends Thread
 		int i=0;
 		while(i!=1)
 		{
-			
+			Message message = waitForMessage();
+			if(message instanceof ChokeMessage)
+			{
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] is choked by [peer_ID "+senderPeer.getPeerID()+"].");
+			}
+			if(message instanceof UnchokeMessage)
+			{
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] is unchoked by [peer_ID "+senderPeer.getPeerID()+"].");
+			}
 		}
 	}
 	
@@ -82,7 +92,6 @@ public class InputConnection extends Thread
 				byte tempByte = inputStream.readByte();
 				inputBytes[index] = tempByte;
 				index++;
-				System.out.println(tempByte);
 			}
 			catch(Exception e)
 			{
@@ -101,6 +110,7 @@ public class InputConnection extends Thread
 		for(int i=5;i<=27;i++)
 		{
 			zeroFieldBytes[i-5] = inputBytes[i];
+
 		}
 		for(int i=28;i<=31;i++)
 		{
@@ -108,92 +118,124 @@ public class InputConnection extends Thread
 		}
 		String stringHello = null;
 		String stringZeroField = null;
-		String stringPeerID = null;
 		try
 		{
 			stringHello = new String(helloBytes,"UTF-8");
 			stringZeroField = new String(zeroFieldBytes,"UTF-8");
-			stringPeerID = new String(peerIDBytes,"UTF-8");
 		}
 		catch(UnsupportedEncodingException error)
 		{
 			error.printStackTrace();
 		}
-		int intPeerID = Integer.parseInt(stringPeerID);
+		//converting peer id bytes
+		int int_peerID = (peerIDBytes[3] & 0xFF) | ((peerIDBytes[2] & 0xFF) << 8) 
+				| ((peerIDBytes[1] & 0xFF) << 16) | ((peerIDBytes[0] & 0xFF) << 24);
+		//
 		peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-				"] is connected from Peer [peer_ID "+intPeerID+"].");
+				"] is connected from Peer [peer_ID "+int_peerID+"].");
 		handshakeReceived = true;
-		return intPeerID;
+		return int_peerID;
 	}
 	
-	public void waitForMessage()
+	public Message waitForMessage()
 	{
-		
-		
-	}
-	
-	public void waitForNormalMessage(){
-		byte[] lengthT_P = new byte[4]; //bytes representing length of message
+		int length = 0;
+		byte[] lengthBytes = new byte[4];
+		int numBytes;
 		DataInputStream inputStream = null;
+		
 		try
 		{
 			inputStream = new DataInputStream(inputSocket.getInputStream());
 		} 
 		catch (IOException exception)
 		{
-			throw new RuntimeException(exception);		
+			throw new RuntimeException(exception);
 		}
-		for(int i=0;i<lengthT_P.length;i++){
-		//	lengthT_P[i] = inputStream.readByte(); 
+		//get length
+			int lengthIndex = 0;
+			while(lengthIndex < 4)
+			{
+				try
+				{
+					byte tempByte = inputStream.readByte();
+					lengthBytes[lengthIndex] = tempByte;
+					lengthIndex++;
+				}
+				catch(Exception e)
+				{
+					//do nothing
+				}
+			}
+			
+			length = (lengthBytes[3] & 0xFF) | ((lengthBytes[2] & 0xFF) << 8) 
+					| ((lengthBytes[1] & 0xFF) << 16) | ((lengthBytes[0] & 0xFF) << 24);
+		//end get length 
+			
+		//get type
+		boolean typeRetrieved=false;
+		byte typeByte = 0;
+		while(typeRetrieved == false)
+		{
+			try
+			{
+				typeByte = inputStream.readByte();
+				typeRetrieved = true;
+			}
+			catch(Exception e)
+			{
+				//do nothing
+			}
 		}
-		
-		int lengthMessage = java.nio.ByteBuffer.wrap(lengthT_P).getInt();
-		byte[] MType = new byte[1];
-		//MType[0] = inputStream.readByte();
-	
-		byte[] MPay;//Bytes representing payload length
-		int TypeMessage = java.nio.ByteBuffer.wrap(MType).getInt();//integer value representing message
-		switch(TypeMessage){
-			case 0: 
-				//Set choke
-				break;
+		int type = (typeByte & 0xFF);
+		//end get type
+		//get payload
+		int payloadIndex = 0;
+		byte[] payloadBytes = new byte[length-1];
+		while(payloadIndex < length-1)
+		{
+			try
+			{
+				byte tempByte = inputStream.readByte();
+				payloadBytes[lengthIndex] = tempByte;
+				payloadIndex++;
+			}
+			catch(Exception e)
+			{
+				//do nothing
+			}
+		}
+		// end payload
+		switch(type)
+		{
+			case 0:
+				ChokeMessage chokeMessage = new ChokeMessage();
+				return chokeMessage;
+				
 			case 1:
-				//Set unchoke
-				break;
-			case 2: 
-				//Set interested
-				break;
+				UnchokeMessage unchokeMessage = new UnchokeMessage();
+				return unchokeMessage;
+				
+			case 2:
+				return null;
+				
 			case 3:
-				//Set Uninterested
-				break;
+				return null;
+				
 			case 4:
-				MPay= new byte[lengthMessage-1];
-				for(int i=0;i<MPay.length;i++){
-				//	MPay[i] = inputStream.readByte(); 
-				}
-				//HaveMessage HM = new HaveMessage(MPay, senderID, peer); //Need sender ID
-				break;
-			case 5: 
-				MPay= new byte[lengthMessage-1];
-				for(int i=0;i<MPay.length;i++){
-				//	MPay[i] = inputStream.readByte(); 
-				}
-				//BitfieldMessage BM = new BitfiledMessage(MPay, senderID, peer);
-				break;
+				return null;
+				
+			case 5:
+				return null;
+				
 			case 6:
-				MPay= new byte[lengthMessage-1];
-				for(int i=0;i<MPay.length;i++){
-					//MPay[i] = inputStream.readByte(); 
-				}
-				//RequestMessage RM = new RequestMessage(MPay, senderID, peer);
-				break;
+				return null;
+				
 			case 7:
-				MPay= new byte[lengthMessage-1];
-				for(int i=0;i<MPay.length;i++){
-					//MPay[i] = inputStream.readByte(); 
-				}
-				//PieceMessage PM = new PieceMessage(MPay, peer);
-				break;
+				return null;
+				
+			default:
+				return null;
 		}
 	}
 	
@@ -203,18 +245,6 @@ public class InputConnection extends Thread
 		if(serverSocket == null)
 		{
 			serverSocket = peer.getServerSocket();
-//			try
-//			{
-//				serverSocket = new ServerSocket(peer.getPortNum());
-//			}
-//			catch(UnknownHostException exception)
-//			{
-//				throw new RuntimeException(exception);
-//			}
-//			catch(IOException exception)
-//			{
-//				throw new RuntimeException(exception);
-//			}
 		}
 		
 		if(inputSocket == null)
@@ -238,7 +268,6 @@ public class InputConnection extends Thread
 		}
 	}
 
-	
 	
 	private void assignSenderPeer(int senderPeerID)
 	{

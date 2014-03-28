@@ -16,4 +16,10 @@ public class TestMessage extends Message{
 	{
 		return payload;
 	}
+
+	@Override
+	public byte[] toByteArray() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

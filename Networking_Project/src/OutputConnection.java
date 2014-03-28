@@ -47,8 +47,12 @@ public class OutputConnection extends Thread
 		{
 			peer.addInputConnection(new InputConnection(peer,outputSocket, receiverPeer));
 		}
-		TestMessage testMessage = new TestMessage("testing");
-		sendMessage(testMessage);
+		
+		ChokeMessage chokeMessage = new ChokeMessage();
+		sendMessage(chokeMessage);
+		
+		UnchokeMessage unchokeMessage = new UnchokeMessage();
+		sendMessage(unchokeMessage);
 		
 		peer.decrementNumPeersDownloading();
 		int i = 0;
@@ -60,8 +64,7 @@ public class OutputConnection extends Thread
 	
 	public void sendMessage(Message message)
 	{
-		String output = message.toString();
-		byte[] outputBytes = output.getBytes();
+		byte[] outputBytes = message.toByteArray();
 		OutputStream outputStream;
 		try
 		{
