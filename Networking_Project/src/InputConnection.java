@@ -79,7 +79,11 @@ public class InputConnection extends Thread
 			}
 			if(message instanceof HaveMessage)
 			{
-				
+				int havePieceIndex;
+				havePieceIndex = ((HaveMessage) message).getHavePieceIndex();
+				System.out.println(havePieceIndex);
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] received a have message from [peer_ID "+senderPeer.getPeerID()+"].");
 			}
 			if(message instanceof BitfieldMessage )
 			{
@@ -260,7 +264,8 @@ public class InputConnection extends Thread
 				return notInterestedMessage;
 				
 			case 4:
-				return null;
+				HaveMessage haveMessage = new HaveMessage(payloadBytes);
+				return haveMessage;
 				
 			case 5:
 				BitfieldMessage bitfieldMessage = new BitfieldMessage(payloadBytes);

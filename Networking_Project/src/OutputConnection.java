@@ -66,6 +66,9 @@ public class OutputConnection extends Thread
 		RequestMessage requestMessage = new RequestMessage(12345678);
 		sendMessage(requestMessage);
 		
+		HaveMessage haveMessage = new HaveMessage(987654321);
+		sendMessage(haveMessage);
+		
 		peer.decrementNumPeersDownloading();
 		int i = 0;
 		while(i!=1)
