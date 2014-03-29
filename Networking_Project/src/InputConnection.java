@@ -102,7 +102,17 @@ public class InputConnection extends Thread
 			}
 			if(message instanceof PieceMessage)
 			{
-				
+				int pieceIndex;
+				byte[] piece;
+				pieceIndex = ((PieceMessage) message).getPieceIndex();
+				piece = ((PieceMessage) message).getPiece();
+				System.out.println("piece index: "+pieceIndex);
+				for(int index = 0; index<piece.length; index++)
+				{
+					System.out.println("piece content: "+piece[index]);
+				}
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] received a piece message from [peer_ID "+senderPeer.getPeerID()+"].");
 			}
 		}
 	}
@@ -276,7 +286,8 @@ public class InputConnection extends Thread
 				return requestMessage;
 				
 			case 7:
-				return null;
+				PieceMessage pieceMessage = new PieceMessage(payloadBytes);
+				return pieceMessage;
 				
 			default:
 				return null;

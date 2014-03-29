@@ -69,6 +69,10 @@ public class OutputConnection extends Thread
 		HaveMessage haveMessage = new HaveMessage(987654321);
 		sendMessage(haveMessage);
 		
+		byte[] dataBytes = {0x00,0x01,0x02,0x03};
+		PieceMessage pieceMessage = new PieceMessage(0, dataBytes);
+		sendMessage(pieceMessage);
+		
 		peer.decrementNumPeersDownloading();
 		int i = 0;
 		while(i!=1)
