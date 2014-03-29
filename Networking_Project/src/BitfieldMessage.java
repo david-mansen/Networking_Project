@@ -16,56 +16,18 @@ public class BitfieldMessage extends Message{
 	}
 	
 	public BitfieldMessage(byte[] payload){
-		for(int i = 0; i<payload.length; i++)
-		{
-			System.out.println("receive from payload: "+payload[i]);
-		}
 		bitfield = new boolean[payload.length*8];
 		int j=0;
 		for(int i=0;i<payload.length;i++){
 			bitfield[j] = ((payload[i] & 0x01) != 0);
-			System.out.println("input "+payload[i]);
-			System.out.println("result"+ bitfield[j]);
 			bitfield[j+1] = ((payload[i] & 0x02) != 0);
-			System.out.println("input "+payload[i]);
-
-			System.out.println("result"+ bitfield[j+1]);
-
 			bitfield[j+2] = ((payload[i] & 0x04) != 0);
-			System.out.println("input "+payload[i]);
-
-			System.out.println("result"+ bitfield[j+2]);
-
 			bitfield[j+3] = ((payload[i] & 0x08) != 0);
-			System.out.println("input "+payload[i]);
-
-			System.out.println("result"+ bitfield[j+3]);
-
 			bitfield[j+4] = ((payload[i] & 0x10) != 0);
-			System.out.println("input "+payload[i]);
-
-			System.out.println("result"+ bitfield[j+4]);
-
 			bitfield[j+5] = ((payload[i] & 0x20) != 0);
-			System.out.println("input "+payload[i]);
-
-			System.out.println("result"+ bitfield[j+5]);
-
 			bitfield[j+6] = ((payload[i] & 0x40) != 0);
-			System.out.println("input "+payload[i]);
-
-			System.out.println("result"+ bitfield[j+6]);
-
 			bitfield[j+7] = ((payload[i] & 0x80) != 0);
-			System.out.println("input "+payload[i]);
-
-			System.out.println("result"+ bitfield[j+7]);
-
 			j = j+8;
-		}
-		for(int i = 0; i<bitfield.length; i++)
-		{
-			System.out.println(bitfield[i]);
 		}
 	}
 
@@ -103,28 +65,24 @@ public class BitfieldMessage extends Message{
 			if(bitfield[j+2] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 2));
-
 			}
 			
 			if(bitfield.length <= j+3) break;
 			if(bitfield[j+3] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 3));
-
 			}
 			
 			if(bitfield.length <= j+4) break;
 			if(bitfield[j+4] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 4));
-
 			}
 			
 			if(bitfield.length <= j+5) break;
 			if(bitfield[j+5] == true)
 			{
 				payload[i] = (byte) (payload[i]| (1 << 5));
-
 			}
 			
 			if(bitfield.length <= j+6) break;
@@ -133,7 +91,7 @@ public class BitfieldMessage extends Message{
 				payload[i] = (byte) (payload[i]| (1 << 6));
 
 			}
-			
+		
 			if(bitfield.length <= j+7) break;
 			if(bitfield[j+7] ==true)
 			{
@@ -149,13 +107,9 @@ public class BitfieldMessage extends Message{
 			bytes[i] = lengthBytes[i];
 		}
 		bytes[4] = type;
-		for(int i=5; i<payload.length; i++)
+		for(int i=0; i<payload.length; i++)
 		{
-			bytes[i] = payload[i-5];
-		}
-		for(int i = 0; i< bytes.length; i++)
-		{
-			System.out.println("to array bytes: "+bytes[i]);
+			bytes[i+5] = payload[i];
 		}
 		return bytes;
 	}

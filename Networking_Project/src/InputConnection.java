@@ -85,12 +85,20 @@ public class InputConnection extends Thread
 			{
 				boolean[] bitfield;
 				bitfield = ((BitfieldMessage) message).getBitfield();
-				for(int index = 0; index< bitfield.length; index++)
-				{
-					System.out.println("received bitfield index: " +index+" value: "+ bitfield[index]);
-				}
 				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 						"] received a bitfield message from [peer_ID "+senderPeer.getPeerID()+"].");
+			}
+			if(message instanceof RequestMessage)
+			{
+				int requestedPiece;
+				requestedPiece = ((RequestMessage) message).getRequestedPiece();
+				System.out.println(requestedPiece);
+				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+						"] received a request message from [peer_ID "+senderPeer.getPeerID()+"].");
+			}
+			if(message instanceof PieceMessage)
+			{
+				
 			}
 		}
 	}
@@ -255,15 +263,12 @@ public class InputConnection extends Thread
 				return null;
 				
 			case 5:
-				for(int i = 0; i<payloadBytes.length; i++)
-				{
-					System.out.println("first input: "+payloadBytes[i]);
-				}
 				BitfieldMessage bitfieldMessage = new BitfieldMessage(payloadBytes);
 				return bitfieldMessage;
 				
 			case 6:
-				return null;
+				RequestMessage requestMessage = new RequestMessage(payloadBytes);
+				return requestMessage;
 				
 			case 7:
 				return null;
@@ -285,7 +290,6 @@ public class InputConnection extends Thread
 		{
 			while(inputSocket==null)
 			{
-				System.out.println("testing block");
 				try
 				{
 					inputSocket = serverSocket.accept();
