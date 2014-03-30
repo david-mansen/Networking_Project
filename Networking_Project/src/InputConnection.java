@@ -53,6 +53,8 @@ public class InputConnection extends Thread
 			peer.addOutputConnection(new OutputConnection(peer,inputSocket,senderPeer));
 		}
 		
+		senderPeer.setIsConnected(true); //set flag that this swarmpeer has input/output connections
+		
 		peer.decrementNumPeersDownloading();
 		int i=0;
 		while(i!=1)
@@ -67,21 +69,25 @@ public class InputConnection extends Thread
 	{
 		if(message instanceof ChokeMessage)
 		{
+			peer.receiveChokeMessage(senderPeer);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] is choked by [peer_ID "+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof UnchokeMessage)
 		{
+			peer.receiveUnchokeMessage(senderPeer);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] is unchoked by [peer_ID "+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof InterestedMessage)
 		{
+			senderPeer.setInterested(true);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] received an 'interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof NotInterestedMessage)
 		{
+			senderPeer.setInterested(false);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] received a 'not interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}
@@ -89,7 +95,8 @@ public class InputConnection extends Thread
 		{
 			int havePieceIndex;
 			havePieceIndex = ((HaveMessage) message).getHavePieceIndex();
-			System.out.println(havePieceIndex);
+			System.out.println("Have message piece index: "+havePieceIndex);
+			peer.receiveHaveMessage(senderPeer, (HaveMessage)message);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] received a have message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}
@@ -103,7 +110,7 @@ public class InputConnection extends Thread
 		{
 			int requestedPiece;
 			requestedPiece = ((RequestMessage) message).getRequestedPiece();
-			System.out.println(requestedPiece);
+			System.out.println("Request message requested piece: "+requestedPiece);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] received a request message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}
@@ -113,7 +120,7 @@ public class InputConnection extends Thread
 			byte[] piece;
 			pieceIndex = ((PieceMessage) message).getPieceIndex();
 			piece = ((PieceMessage) message).getPiece();
-			System.out.println("piece index: "+pieceIndex);
+			System.out.println("Piece message piece index: "+pieceIndex);
 			for(int index = 0; index<piece.length; index++)
 			{
 				System.out.println("piece content: "+piece[index]);

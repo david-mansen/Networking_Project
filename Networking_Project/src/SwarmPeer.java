@@ -12,15 +12,21 @@ public class SwarmPeer {
 		//other fields 
 		private boolean[] bitfield;
 		
-		private boolean isPreferred = false;
-		private boolean isChoked = true;
+		private boolean isConnected = false;  //true when this swarm peer has an input connection to receive
+		private boolean optimisticallyUnchoked = false; //true if optimistically preferred peer
+		private boolean isChoked = true;     //true if choked
+		private boolean interested = false;  //true if interested, false if Not interested
 		
-		public SwarmPeer(int peerID, String hostName, int portNum, boolean hasEntireFile, int numPieces) 
+		private int bytesDownloadedLastInterval = 0;  //
+		private int unchokingInterval;
+		
+		public SwarmPeer(int peerID, String hostName, int portNum, boolean hasEntireFile, int numPieces, int unchokingInterval) 
 		{
 			this.peerID = peerID;
 			this.hostName = hostName;
 			this.portNum = portNum;
 			this.hasEntireFile = hasEntireFile;
+			this.unchokingInterval = unchokingInterval;
 			
 			initializeBitfield(numPieces);
 			
@@ -79,5 +85,49 @@ public class SwarmPeer {
 			return bitfield;
 		}
 		
+		public synchronized void setInterested(boolean interested)
+		{
+			this.interested = interested;
+		}
 		
+		public synchronized void setIsChoked(boolean isChoked)
+		{
+			this.isChoked = isChoked;
+		}
+		
+		public synchronized void setOptimisticallyUnchoked()
+		{
+			isChoked = false;
+			optimisticallyUnchoked = true;
+		}
+		
+		public synchronized void setIsConnected(boolean isConnected)
+		{
+			this.isConnected = isConnected;
+		}
+		
+		public synchronized boolean getIsConnected()
+		{
+			return isConnected;
+		}
+		
+		public synchronized boolean getIsChoked()
+		{
+			return isChoked;
+		}
+		
+		public synchronized boolean getOptimisticallyUnchoked()
+		{
+			return optimisticallyUnchoked;
+		}
+		
+		public synchronized boolean getInterested()
+		{
+			return interested;
+		}
+		
+		public synchronized float getDownloadRate()
+		{
+			return (float)bytesDownloadedLastInterval/(float)unchokingInterval;
+		}
 }

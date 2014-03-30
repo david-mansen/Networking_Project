@@ -78,6 +78,51 @@ public class Peer {
 		}
 	}
 	
+	public synchronized void receiveUnchokeMessage(SwarmPeer senderPeer)
+	{
+		System.out.println("PEER_"+senderPeer.getPeerID()+" UN_CHOKED YOU!");
+		for(int i=0; i<bitfield.length; i++)
+		{
+			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
+			{
+				
+				for(OutputConnection outputConnection : outputConnections)
+				{
+					if(outputConnection.getReceiverPeer() == senderPeer)
+					{
+						System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+i);
+						RequestMessage requestMessage = new RequestMessage(i);
+						outputConnection.addMessageToQueue(requestMessage);
+						return;
+					}
+				}
+			}
+		}
+	}
+	
+	public synchronized void receiveHaveMessage(SwarmPeer senderPeer, HaveMessage haveMessage)
+	{
+		int havePieceIndex = haveMessage.getHavePieceIndex();
+		
+		if(bitfield[havePieceIndex] == false)
+		{
+			for(OutputConnection outputConnection : outputConnections)
+			{
+				if(outputConnection.getReceiverPeer() == senderPeer)
+				{
+					System.out.println("ADDING INTERESTED MESSAGE TO QUEUE");
+					InterestedMessage interestedMessage = new InterestedMessage();
+					outputConnection.addMessageToQueue(interestedMessage);
+				}
+			}
+		}
+	}
+	
+	public synchronized void receiveChokeMessage(SwarmPeer senderPeer)
+	{
+		System.out.println("PEER_"+senderPeer.getPeerID()+" CHOKED YOU!");
+	}
+	
 	public synchronized void receiveBitfieldMessage(SwarmPeer senderPeer, BitfieldMessage message)
 	{
 		boolean hasDesiredPiece = false;
@@ -393,7 +438,7 @@ public class Peer {
 			else
 			{
 				//create a peer with these parameters 
-				SwarmPeer swarmPeer = new SwarmPeer(peerID,hostName,portNum,hasEntireFile,numPieces);
+				SwarmPeer swarmPeer = new SwarmPeer(peerID,hostName,portNum,hasEntireFile,numPieces,unchokingInterval);
 				otherPeers.add(swarmPeer);
 			}
 		}
