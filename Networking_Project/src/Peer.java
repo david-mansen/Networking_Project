@@ -104,7 +104,7 @@ public class Peer {
 							pieceBytes[j] = 0x00;
 						}
 					}
-					writePieceToFile(pieceBytes, "piece_"+i+".dat");
+					writePieceToFile(i, pieceBytes);
 				}
 				catch(IOException e)
 				{
@@ -133,10 +133,10 @@ public class Peer {
 		}
 	}
 	
-	private synchronized void writePieceToFile(byte[] pieceBytes, String outputFile)
+	private synchronized void writePieceToFile(int pieceIndex, byte[] pieceBytes)
 	{
 		File pieceFile = null;
-		pieceFile = new File("peer_"+peerID+"/"+outputFile);
+		pieceFile = new File("peer_"+peerID+"/"+"piece_"+pieceIndex+".dat");
 		if(!pieceFile.exists())
 		{
 			System.out.println("Piece file not found, creating new piece file");
@@ -165,11 +165,11 @@ public class Peer {
 		}
 	}
 	
-	public synchronized byte[] getPiece(int index)
+	public synchronized byte[] getPiece(int pieceIndex)
 	{
 		byte[] piece = new byte[pieceSize];
 		
-		File pieceFile = new File("peer_"+peerID+"/"+"piece_"+index+".dat");
+		File pieceFile = new File("peer_"+peerID+"/"+"piece_"+pieceIndex+".dat");
 		System.out.println("File Size: "+pieceFile.length());
 		
 		InputStream inputStream = null;
