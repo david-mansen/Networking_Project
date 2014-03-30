@@ -40,6 +40,7 @@ public class BitfieldMessage extends Message{
 
 	@Override
 	public byte[] toByteArray() {
+		
 		//length
 		ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
 		lengthBuffer.putInt(length);
@@ -111,6 +112,7 @@ public class BitfieldMessage extends Message{
 		{
 			bytes[i+5] = payload[i];
 		}
+		
 		return bytes;
 	}
 	

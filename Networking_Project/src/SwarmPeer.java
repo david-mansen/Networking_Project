@@ -12,8 +12,8 @@ public class SwarmPeer {
 		//other fields 
 		private boolean[] bitfield;
 		
-		private boolean preferred;
-		
+		private boolean isPreferred = false;
+		private boolean isChoked = true;
 		
 		public SwarmPeer(int peerID, String hostName, int portNum, boolean hasEntireFile, int numPieces) 
 		{
@@ -61,15 +61,23 @@ public class SwarmPeer {
 			return portNum;
 		}
 		
-		public void updateBitfield(int pieceNumber)
+		public synchronized void updateBitfield(int pieceNumber)
 		{
 			bitfield[pieceNumber] = true;
-			//error checking probably needed, later
 		}
 		
-		public void assignReceivedBitfield()
+		public synchronized void setBitfield(boolean[] newBitfield)
 		{
-			//bitfield = receivedBitfield;
+			for(int i=0; i<this.bitfield.length; i++)
+			{
+				this.bitfield[i] = newBitfield[i];
+			}
 		}
+		
+		public synchronized boolean[] getBitfield()
+		{
+			return bitfield;
+		}
+		
 		
 }

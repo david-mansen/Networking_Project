@@ -60,7 +60,6 @@ public class Peer {
 		
 		initServerSocket();
 		
-		
 		initializeBitfield();
 		initializeDirectory();
 		
@@ -78,6 +77,40 @@ public class Peer {
 			
 		}
 	}
+	
+	public synchronized void receiveBitfieldMessage(SwarmPeer senderPeer, BitfieldMessage message)
+	{
+		boolean hasDesiredPiece = false;
+		
+		senderPeer.setBitfield(message.getBitfield());
+		for(int i=0; i<bitfield.length; i++)
+		{
+			//System.out.println("receiver: "+bitfield[i]+"sender: "+senderPeer.getBitfield()[i]);
+			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
+			{
+				hasDesiredPiece = true;
+			}
+		}
+		for(OutputConnection outputConnection : outputConnections)
+		{
+			if(outputConnection.getReceiverPeer() == senderPeer)
+			{
+				if(hasDesiredPiece == true)
+				{
+					System.out.println("ADDING INTERESTED MESSAGE TO QUEUE");
+					InterestedMessage interestedMessage = new InterestedMessage();
+					outputConnection.addMessageToQueue(interestedMessage);
+				}
+				else
+				{
+					System.out.println("ADDING NOT_INTERESTED MESSAGE TO QUEUE");
+					NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+					outputConnection.addMessageToQueue(notInterestedMessage);
+				}
+			}
+		}
+	}
+	
 	
 	private void breakFileIntoPieces()
 	{
@@ -556,7 +589,7 @@ public class Peer {
 		{
 			if(inputConnection != null) inputConnection.interrupt();
 		}
-		
+		writeToLogFile(" ");
 		System.exit(0);
 	}
 	

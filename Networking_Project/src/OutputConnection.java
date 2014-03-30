@@ -3,7 +3,10 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 public class OutputConnection extends Thread
@@ -14,12 +17,16 @@ public class OutputConnection extends Thread
 	
 	public boolean done;
 	
+	private Queue<Message> outputMessageQueue;
+	private int numMessagesInQueue;
+	
 	public OutputConnection(Peer peer, SwarmPeer receiverPeer)
 	{
 		done=false;
 		this.peer=peer;
 		this.receiverPeer=receiverPeer;
 		outputSocket = null;
+		outputMessageQueue = new LinkedList<Message>();
 		this.start(); //start the thread
 	}
 	
@@ -29,6 +36,7 @@ public class OutputConnection extends Thread
 		this.peer=peer;
 		this.receiverPeer = receiverPeer;
 		outputSocket = existingSocket;
+		outputMessageQueue = new LinkedList<Message>();
 		this.start(); //start the thread
 	}
 	
@@ -48,35 +56,48 @@ public class OutputConnection extends Thread
 			peer.addInputConnection(new InputConnection(peer,outputSocket, receiverPeer));
 		}
 		
-		ChokeMessage chokeMessage = new ChokeMessage();
-		sendMessage(chokeMessage);
-		
-		UnchokeMessage unchokeMessage = new UnchokeMessage();
-		sendMessage(unchokeMessage);
-		
-		InterestedMessage interestedMessage = new InterestedMessage();
-		sendMessage(interestedMessage);
-		
-		NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
-		sendMessage(notInterestedMessage);
-		
 		BitfieldMessage bitfieldMessage = new BitfieldMessage(peer.getBitfield());
 		sendMessage(bitfieldMessage);
 		
-		RequestMessage requestMessage = new RequestMessage(12345678);
-		sendMessage(requestMessage);
-		
-		HaveMessage haveMessage = new HaveMessage(987654321);
-		sendMessage(haveMessage);
-		
-		byte[] dataBytes = {0x00,0x01,0x02,0x03};
-		PieceMessage pieceMessage = new PieceMessage(0, dataBytes);
-		sendMessage(pieceMessage);
+//		ChokeMessage chokeMessage = new ChokeMessage();
+//		sendMessage(chokeMessage);
+//		
+//		UnchokeMessage unchokeMessage = new UnchokeMessage();
+//		sendMessage(unchokeMessage);
+//		
+//		InterestedMessage interestedMessage = new InterestedMessage();
+//		sendMessage(interestedMessage);
+//		
+//		NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+//		sendMessage(notInterestedMessage);
+//		
+//		BitfieldMessage bitfieldMessage = new BitfieldMessage(peer.getBitfield());
+//		sendMessage(bitfieldMessage);
+//
+//		RequestMessage requestMessage = new RequestMessage(12345678);
+//		sendMessage(requestMessage);
+//		
+//		HaveMessage haveMessage = new HaveMessage(987654321);
+//		sendMessage(haveMessage);
+//		
+//		byte[] dataBytes = {0x00,0x01,0x02,0x03};
+//		PieceMessage pieceMessage = new PieceMessage(0, dataBytes);
+//		sendMessage(pieceMessage);
 		
 		peer.decrementNumPeersDownloading();
 		int i = 0;
 		while(i!=1)
 		{
+			if(outputMessageQueue.isEmpty() == false)
+			{
+				Message outputMessage = getMessageFromQueue();
+
+				if(outputMessage != null)
+				{
+					System.out.println("OUTPUT CONNECTION SHOULD BE SENDING MESSAGE");
+					sendMessage(outputMessage);
+				}
+			}
 			
 		}
 	}
@@ -124,4 +145,20 @@ public class OutputConnection extends Thread
 		return receiverPeer;
 	}
 	
+	public synchronized void addMessageToQueue(Message message)
+	{
+		outputMessageQueue.add(message);
+	}
+	
+	private Message getMessageFromQueue()
+	{
+		return outputMessageQueue.poll();
+	}
+	
+	public synchronized String peekAtMessage()
+	{
+		Message m;
+		m = outputMessageQueue.peek();
+		return  m.toString();
+	}
 }

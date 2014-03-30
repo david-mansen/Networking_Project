@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
 
 
@@ -57,63 +58,68 @@ public class InputConnection extends Thread
 		while(i!=1)
 		{
 			Message message = waitForMessage();
-			if(message instanceof ChokeMessage)
+			System.out.println("INPUT CONNECTION RECEIVED MESSAGE");
+			handleMessage(message);
+		}
+	}
+	
+	private void handleMessage(Message message)
+	{
+		if(message instanceof ChokeMessage)
+		{
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] is choked by [peer_ID "+senderPeer.getPeerID()+"].");
+		}
+		if(message instanceof UnchokeMessage)
+		{
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] is unchoked by [peer_ID "+senderPeer.getPeerID()+"].");
+		}
+		if(message instanceof InterestedMessage)
+		{
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] received an 'interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
+		}
+		if(message instanceof NotInterestedMessage)
+		{
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] received a 'not interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
+		}
+		if(message instanceof HaveMessage)
+		{
+			int havePieceIndex;
+			havePieceIndex = ((HaveMessage) message).getHavePieceIndex();
+			System.out.println(havePieceIndex);
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] received a have message from [peer_ID "+senderPeer.getPeerID()+"].");
+		}
+		if(message instanceof BitfieldMessage )
+		{
+			peer.receiveBitfieldMessage(senderPeer, (BitfieldMessage)message);
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] received a bitfield message from [peer_ID "+senderPeer.getPeerID()+"].");
+		}
+		if(message instanceof RequestMessage)
+		{
+			int requestedPiece;
+			requestedPiece = ((RequestMessage) message).getRequestedPiece();
+			System.out.println(requestedPiece);
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] received a request message from [peer_ID "+senderPeer.getPeerID()+"].");
+		}
+		if(message instanceof PieceMessage)
+		{
+			int pieceIndex;
+			byte[] piece;
+			pieceIndex = ((PieceMessage) message).getPieceIndex();
+			piece = ((PieceMessage) message).getPiece();
+			System.out.println("piece index: "+pieceIndex);
+			for(int index = 0; index<piece.length; index++)
 			{
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] is choked by [peer_ID "+senderPeer.getPeerID()+"].");
+				System.out.println("piece content: "+piece[index]);
 			}
-			if(message instanceof UnchokeMessage)
-			{
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] is unchoked by [peer_ID "+senderPeer.getPeerID()+"].");
-			}
-			if(message instanceof InterestedMessage)
-			{
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] received an 'interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
-			}
-			if(message instanceof NotInterestedMessage)
-			{
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] received a 'not interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
-			}
-			if(message instanceof HaveMessage)
-			{
-				int havePieceIndex;
-				havePieceIndex = ((HaveMessage) message).getHavePieceIndex();
-				System.out.println(havePieceIndex);
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] received a have message from [peer_ID "+senderPeer.getPeerID()+"].");
-			}
-			if(message instanceof BitfieldMessage )
-			{
-				boolean[] bitfield;
-				bitfield = ((BitfieldMessage) message).getBitfield();
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] received a bitfield message from [peer_ID "+senderPeer.getPeerID()+"].");
-			}
-			if(message instanceof RequestMessage)
-			{
-				int requestedPiece;
-				requestedPiece = ((RequestMessage) message).getRequestedPiece();
-				System.out.println(requestedPiece);
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] received a request message from [peer_ID "+senderPeer.getPeerID()+"].");
-			}
-			if(message instanceof PieceMessage)
-			{
-				int pieceIndex;
-				byte[] piece;
-				pieceIndex = ((PieceMessage) message).getPieceIndex();
-				piece = ((PieceMessage) message).getPiece();
-				System.out.println("piece index: "+pieceIndex);
-				for(int index = 0; index<piece.length; index++)
-				{
-					System.out.println("piece content: "+piece[index]);
-				}
-				peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-						"] received a piece message from [peer_ID "+senderPeer.getPeerID()+"].");
-			}
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
+					"] received a piece message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}
 	}
 	
