@@ -95,11 +95,11 @@ public class SwarmPeer {
 			this.isChoked = isChoked;
 		}
 		
-		public synchronized void setOptimisticallyUnchoked()
+		public synchronized void setOptimisticallyUnchoked(boolean optimisticallyUnchoked)
 		{
-			isChoked = false;
-			optimisticallyUnchoked = true;
+			this.optimisticallyUnchoked = optimisticallyUnchoked;
 		}
+		
 		
 		public synchronized void setIsConnected(boolean isConnected)
 		{

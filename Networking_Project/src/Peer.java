@@ -81,10 +81,6 @@ public class Peer {
 	
 	private void selectPreferredSwarmPeers()
 	{
-		//used
-		
-		//
-		int numPeersConnected = 0;
 		ArrayList<SwarmPeer> temp = new ArrayList<SwarmPeer>();
 		if(hasEntireFile == true)
 		{
@@ -121,6 +117,7 @@ public class Peer {
 				
 				if(selectedPeer.getIsChoked() == true)
 				{
+					selectedPeer.setIsChoked(false);
 					System.out.println("Unchoking Peer_"+selectedPeer.getPeerID());
 					OutputConnection outputConnection = getOutputConnection(selectedPeer);
 					if(outputConnection != null)
@@ -171,6 +168,7 @@ public class Peer {
 				
 				if(selectedPeer.getIsChoked() == true)
 				{
+					selectedPeer.setIsChoked(false);
 					OutputConnection outputConnection = getOutputConnection(selectedPeer);
 					if(outputConnection != null)
 					{
@@ -186,6 +184,7 @@ public class Peer {
 		{
 			if((tempPeer.getIsPreferred() == false) && (tempPeer.getIsChoked() == false))
 			{
+				tempPeer.setIsChoked(true);
 				OutputConnection outputConnection = getOutputConnection(tempPeer);
 				if(outputConnection != null)
 				{
@@ -196,6 +195,95 @@ public class Peer {
 			}
 		}
 	}
+
+	private void selectOptimisticallyUnchokedPeer()
+	{
+		ArrayList<SwarmPeer> temp = new ArrayList<SwarmPeer>();
+		
+		SwarmPeer prevOptUnchokedPeer = null;
+		
+		for(SwarmPeer tempPeer : otherPeers)
+		{
+			if(tempPeer.getOptimisticallyUnchoked() == true)
+			{
+				prevOptUnchokedPeer = tempPeer;
+			}
+			if(tempPeer.getIsConnected() && tempPeer.getInterested() && tempPeer.getIsChoked())
+			{
+				temp.add(tempPeer);
+			}
+		}
+		
+		if(temp.size() < 1)
+		{
+			System.out.println("Cant choose a new one");
+			
+			//clear previous opt chosen peer
+			if(prevOptUnchokedPeer != null)
+			{
+				prevOptUnchokedPeer.setOptimisticallyUnchoked(false);
+				if((prevOptUnchokedPeer.getIsChoked() == false) && (prevOptUnchokedPeer.getIsPreferred() == false))
+				{
+					prevOptUnchokedPeer.setIsChoked(true);
+					System.out.println("Choking Peer_"+prevOptUnchokedPeer.getPeerID());
+					OutputConnection outputConnection = getOutputConnection(prevOptUnchokedPeer);
+					if(outputConnection != null)
+					{
+						ChokeMessage chokeMessage = new ChokeMessage();
+						outputConnection.addMessageToQueue(chokeMessage);
+					}
+				}
+			}
+		}
+		else
+		{
+			Random random = new Random();
+			int selectedPeerIndex = random.nextInt(temp.size());
+			
+			SwarmPeer selectedPeer = temp.get(selectedPeerIndex);
+			
+			System.out.println("Peer_"+selectedPeer.getPeerID()+" is randomly chosen as opt unchoked neighbor!");
+						
+			if(prevOptUnchokedPeer == selectedPeer)
+			{
+				//leave flags check, do nothing else
+			}
+			else
+			{
+				//check if need to choke prev opt unchoked peer
+				if(prevOptUnchokedPeer != null)
+				{
+					prevOptUnchokedPeer.setOptimisticallyUnchoked(false);
+					if((prevOptUnchokedPeer.getIsChoked() == false) && (prevOptUnchokedPeer.getIsPreferred() == false))
+					{
+						prevOptUnchokedPeer.setIsChoked(true);
+						System.out.println("Choking Peer_"+prevOptUnchokedPeer.getPeerID());
+						OutputConnection outputConnection = getOutputConnection(prevOptUnchokedPeer);
+						if(outputConnection != null)
+						{
+							ChokeMessage chokeMessage = new ChokeMessage();
+							outputConnection.addMessageToQueue(chokeMessage);
+						}
+					}
+				}
+				
+				selectedPeer.setOptimisticallyUnchoked(true);
+				
+				if(selectedPeer.getIsChoked() == true)
+				{
+					selectedPeer.setIsChoked(false);
+					System.out.println("Unchoking Peer_"+selectedPeer.getPeerID());
+					OutputConnection outputConnection = getOutputConnection(selectedPeer);
+					if(outputConnection != null)
+					{
+						UnchokeMessage unchokeMessage = new UnchokeMessage();
+						outputConnection.addMessageToQueue(unchokeMessage);
+					}
+				}
+			}
+		}
+	}
+	
 	
 	public synchronized void receiveUnchokeMessage(SwarmPeer senderPeer)
 	{
@@ -760,6 +848,8 @@ public class Peer {
 						public void run()
 						{
 							System.out.println("optimistic unchoking");
+							selectOptimisticallyUnchokedPeer();
+
 						}
 					}, optimisticUnchokingInterval*1000, optimisticUnchokingInterval*1000);
 				
