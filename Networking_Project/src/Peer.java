@@ -84,35 +84,49 @@ public class Peer {
 		//used
 		
 		//
-		
-		ArrayList<Integer> temp = new ArrayList<Integer>(numPreferredNeighbors);
+		int numPeersConnected = 0;
+		ArrayList<SwarmPeer> temp = new ArrayList<SwarmPeer>();
 		if(hasEntireFile == true)
 		{
 			int peersLeftToSelect = numPreferredNeighbors;
-			if(outputConnections.size() <= numPreferredNeighbors)
+
+			for(SwarmPeer tempPeer : otherPeers)
 			{
-				System.out.println("NumPreferred Neighbors is larger than outputConnections Size");
-				peersLeftToSelect = outputConnections.size();
+				tempPeer.setIsPreferred(false);  //clear all preferred flags
+				if(tempPeer.getIsConnected() && tempPeer.getInterested())
+				{
+					temp.add(tempPeer);
+				}
 			}
+			
+			if(temp.size() <= numPreferredNeighbors)
+			{
+				System.out.println("NumPreferred Neighbors is larger than actual number of connected peers!");
+				peersLeftToSelect = temp.size();
+			}
+			System.out.println("size of temp array: "+temp.size());
+			System.out.println("peers left to select: "+peersLeftToSelect);
 			while(peersLeftToSelect > 0)
 			{
-				
 				Random random = new Random();
-				int selectedPeer = random.nextInt(outputConnections.size()+1);
-				System.out.println("Peer_"+selectedPeer+" is chosen as preferred neighbor!");
+				int selectedPeerIndex = random.nextInt(temp.size());
 				
-				if(otherPeers.get(selectedPeer).getInterested()  && (temp.contains(selectedPeer)==false))
+				SwarmPeer selectedPeer = temp.get(selectedPeerIndex);
+				temp.remove(selectedPeerIndex);
+				
+				System.out.println("Peer_"+selectedPeer.getPeerID()+" is randomly chosen as preferred neighbor!");
+				
+				peersLeftToSelect--;
+				selectedPeer.setIsPreferred(true);
+				
+				if(selectedPeer.getIsChoked() == true)
 				{
-					temp.add(selectedPeer); //make sure this swarm peer isnt selected again
-					peersLeftToSelect--;
-					if(otherPeers.get(selectedPeer).getIsChoked() == true)
+					System.out.println("Unchoking Peer_"+selectedPeer.getPeerID());
+					OutputConnection outputConnection = getOutputConnection(selectedPeer);
+					if(outputConnection != null)
 					{
-						OutputConnection outputConnection = getOutputConnection(otherPeers.get(selectedPeer));
-						if(outputConnection != null)
-						{
-							UnchokeMessage unchokeMessage = new UnchokeMessage();
-							outputConnection.addMessageToQueue(unchokeMessage);
-						}
+						UnchokeMessage unchokeMessage = new UnchokeMessage();
+						outputConnection.addMessageToQueue(unchokeMessage);
 					}
 				}
 			}
@@ -120,65 +134,66 @@ public class Peer {
 		else
 		{
 			int peersLeftToSelect = numPreferredNeighbors;
-			if(outputConnections.size() <= numPreferredNeighbors)
+
+			for(SwarmPeer tempPeer : otherPeers)
 			{
-				System.out.println("NumPreferred Neighbors is larger than outputConnections Size");
-				peersLeftToSelect = outputConnections.size();
-			}
-			while(peersLeftToSelect > 0)
-			{
-				int currentSelectedPeerIndex = 0;
-				
-				for(int i=0; i<otherPeers.size(); i++)
+				tempPeer.setIsPreferred(false);  //clear all preferred flags
+				if(tempPeer.getIsConnected() && tempPeer.getInterested())
 				{
-					if(otherPeers.get(i).getInterested() == false)
-					{
-						temp.add(i); //cull disqualified peers
-					}
-				}
-				
-				//get starting one for search
-				for(int i=0; i<otherPeers.size(); i++)
-				{
-					if((otherPeers.get(i).getInterested() == true) && (temp.contains(i)==false))
-					{
-						currentSelectedPeerIndex = i;
-						break;
-					}
-				}
-				
-				for(int i=0; i<otherPeers.size(); i++)
-				{
-					if((otherPeers.get(i).getDownloadRate() >= otherPeers.get(currentSelectedPeerIndex).getDownloadRate()) 
-							&& (temp.contains(i)==false))
-					{
-						currentSelectedPeerIndex = i;
-					}
-				}
-				if((otherPeers.get(currentSelectedPeerIndex).getDownloadRate() <= 0.0f) || (otherPeers.get(currentSelectedPeerIndex).getInterested()==false))
-				{
-					System.out.println("Didnt select full amount of peers, 0 bps ");
-					return;  //dont want to unchoke any peers with 0 bps 
-				}
-				
-				System.out.println("Peer_"+currentSelectedPeerIndex+" is chosen as preferred neighbor!");
-				
-				if(otherPeers.get(currentSelectedPeerIndex).getInterested()  && (temp.contains(currentSelectedPeerIndex)==false))
-				{
-					temp.add(currentSelectedPeerIndex); //make sure this swarm peer isnt selected again
-					peersLeftToSelect--;
-					if(otherPeers.get(currentSelectedPeerIndex).getIsChoked() == true)
-					{
-						OutputConnection outputConnection = getOutputConnection(otherPeers.get(currentSelectedPeerIndex));
-						if(outputConnection != null)
-						{
-							UnchokeMessage unchokeMessage = new UnchokeMessage();
-							outputConnection.addMessageToQueue(unchokeMessage);
-						}
-					}
+					temp.add(tempPeer);
 				}
 			}
 			
+			if(temp.size() <= numPreferredNeighbors)
+			{
+				System.out.println("NumPreferred Neighbors is larger than actual number of connected peers!");
+				peersLeftToSelect = temp.size();
+			}
+			
+			while(peersLeftToSelect > 0)
+			{
+				System.out.println("Selecting by download rate");
+				SwarmPeer selectedPeer = temp.get(0);
+				for(SwarmPeer curPeer : temp)
+				{
+					if(curPeer.getDownloadRate() >= selectedPeer.getDownloadRate())
+					{
+						selectedPeer = curPeer;
+					}
+				}
+				
+				temp.remove(selectedPeer);
+				
+				System.out.println("Peer_"+selectedPeer.getPeerID()+" is randomly chosen as preferred neighbor!");
+				
+				peersLeftToSelect--;
+				selectedPeer.setIsPreferred(true);
+				
+				if(selectedPeer.getIsChoked() == true)
+				{
+					OutputConnection outputConnection = getOutputConnection(selectedPeer);
+					if(outputConnection != null)
+					{
+						System.out.println("Unchoking Peer_"+selectedPeer.getPeerID());
+						UnchokeMessage unchokeMessage = new UnchokeMessage();
+						outputConnection.addMessageToQueue(unchokeMessage);
+					}
+				}
+			}
+		}
+		//finally send choke messages to peers that were not preferred
+		for(SwarmPeer tempPeer : otherPeers)
+		{
+			if((tempPeer.getIsPreferred() == false) && (tempPeer.getIsChoked() == false))
+			{
+				OutputConnection outputConnection = getOutputConnection(tempPeer);
+				if(outputConnection != null)
+				{
+					System.out.println("Choking Peer_"+tempPeer.getPeerID());
+					ChokeMessage chokeMessage = new ChokeMessage();
+					outputConnection.addMessageToQueue(chokeMessage);
+				}
+			}
 		}
 	}
 	

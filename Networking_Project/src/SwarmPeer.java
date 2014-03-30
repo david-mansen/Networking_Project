@@ -12,8 +12,9 @@ public class SwarmPeer {
 		//other fields 
 		private boolean[] bitfield;
 		
-		private boolean isConnected = false;  //true when this swarm peer has an input connection to receive
+		private boolean isPreferred = false;
 		private boolean optimisticallyUnchoked = false; //true if optimistically preferred peer
+		private boolean isConnected = false;  //true when this swarm peer has an input connection to receive
 		private boolean isChoked = true;     //true if choked
 		private boolean interested = false;  //true if interested, false if Not interested
 		
@@ -123,6 +124,16 @@ public class SwarmPeer {
 		public synchronized boolean getInterested()
 		{
 			return interested;
+		}
+		
+		public synchronized boolean getIsPreferred()
+		{
+			return isPreferred;
+		}
+		
+		public synchronized void setIsPreferred(boolean isPreferred)
+		{
+			this.isPreferred = isPreferred;
 		}
 		
 		public synchronized float getDownloadRate()
