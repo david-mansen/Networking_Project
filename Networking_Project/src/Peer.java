@@ -68,9 +68,6 @@ public class Peer {
 		{
 			breakFileIntoPieces(); //only if peer has entire file
 		}
-		mergePieces();
-		
-		getPiece(0);
 		
 		setTimers();
 		
@@ -85,7 +82,7 @@ public class Peer {
 	private void breakFileIntoPieces()
 	{
 		File completeFile = new File("peer_"+peerID+"/"+fileName);
-		System.out.println("File Size: "+completeFile.length());
+		//System.out.println("File Size: "+completeFile.length());
 		
 		InputStream inputStream = null;
 		try
@@ -110,10 +107,10 @@ public class Peer {
 				{
 					e.printStackTrace();
 				}
-				for(int j=0; j<pieceBytes.length; j++)
-				{
-					System.out.println(pieceBytes[j]);
-				}
+				//for(int j=0; j<pieceBytes.length; j++)
+				//{
+					//System.out.println(pieceBytes[j]);
+				//}
 			}
 		}
 		catch (FileNotFoundException error)
@@ -179,16 +176,16 @@ public class Peer {
 			try
 			{
 				int bytesRead = inputStream.read(piece);
-				System.out.println("Read "+bytesRead+" bytes from piece.");
+				//System.out.println("Read "+bytesRead+" bytes from piece.");
 			}
 			catch(IOException e)
 			{
 				e.printStackTrace();
 			}
-			for(int j=0; j<piece.length; j++)
-			{
-				System.out.println(piece[j]);
-			}
+			//for(int j=0; j<piece.length; j++)
+			//{
+			//	System.out.println(piece[j]);
+			//}
 		}
 		catch (FileNotFoundException error)
 		{
