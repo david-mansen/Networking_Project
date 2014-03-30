@@ -15,14 +15,6 @@ public class ChokeMessage extends Message{
 		//no payload
 	}
 	
-//	int aLen = A.length;
-//	   int bLen = B.length;
-//	   Foo[] C= new Foo[aLen+bLen];
-//	   System.arraycopy(A, 0, C, 0, aLen);
-//	   System.arraycopy(B, 0, C, aLen, bLen);
-//	   return C;
-	
-	
 	public byte[] toByteArray()
 	{
 		ByteBuffer lengthBuffer = ByteBuffer.allocate(4);

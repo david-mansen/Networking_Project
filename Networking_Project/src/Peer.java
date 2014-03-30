@@ -68,6 +68,9 @@ public class Peer {
 		{
 			breakFileIntoPieces(); //only if peer has entire file
 		}
+		mergePieces();
+		
+		getPiece(0);
 		
 		setTimers();
 		
@@ -76,23 +79,6 @@ public class Peer {
 		int i=0;
 		while(i!=1){
 			
-
-			//if((currentExitTimer/1000) >= 30)
-			//{
-		//		outputConnection1.interrupt();
-			//	inputConnection1.interrupt();
-			//}
-
-			
-//			if(numPeersDownloading <= 0)
-//			{
-//				System.out.println("Exiting");
-//				if(outputConnection1 != null)
-//				outputConnection1.interrupt();
-//				if(inputConnection1 != null)
-//				inputConnection1.interrupt();
-//				System.exit(0);
-//			}
 		}
 	}
 	
@@ -110,14 +96,21 @@ public class Peer {
 			{
 				try
 				{
-					inputStream.read(pieceBytes);
+					int bytesRead = inputStream.read(pieceBytes);
+					if(bytesRead>0)
+					{
+						for(int j=bytesRead; j<pieceSize; j++)
+						{
+							pieceBytes[j] = 0x00;
+						}
+					}
 					writePieceToFile(pieceBytes, "piece_"+i+".dat");
 				}
 				catch(IOException e)
 				{
 					e.printStackTrace();
 				}
-				for(int j=0; j<10; j++)
+				for(int j=0; j<pieceBytes.length; j++)
 				{
 					System.out.println(pieceBytes[j]);
 				}
@@ -140,7 +133,7 @@ public class Peer {
 		}
 	}
 	
-	private void writePieceToFile(byte[] pieceBytes, String outputFile)
+	private synchronized void writePieceToFile(byte[] pieceBytes, String outputFile)
 	{
 		File pieceFile = null;
 		pieceFile = new File("peer_"+peerID+"/"+outputFile);
@@ -172,9 +165,84 @@ public class Peer {
 		}
 	}
 	
+	public synchronized byte[] getPiece(int index)
+	{
+		byte[] piece = new byte[pieceSize];
+		
+		File pieceFile = new File("peer_"+peerID+"/"+"piece_"+index+".dat");
+		System.out.println("File Size: "+pieceFile.length());
+		
+		InputStream inputStream = null;
+		try
+		{
+			inputStream = new BufferedInputStream(new FileInputStream(pieceFile));
+			try
+			{
+				int bytesRead = inputStream.read(piece);
+				System.out.println("Read "+bytesRead+" bytes from piece.");
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+			for(int j=0; j<piece.length; j++)
+			{
+				System.out.println(piece[j]);
+			}
+		}
+		catch (FileNotFoundException error)
+		{
+			error.printStackTrace();
+		}
+		finally
+		{
+			try
+			{
+				inputStream.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
+		return piece;
+	}
+	
 	private void mergePieces()
 	{
-		
+		File mergedFile = null;
+		mergedFile = new File("peer_"+peerID+"/"+"mergedFile.dat");
+		if(!mergedFile.exists())
+		{
+			System.out.println("Piece file not found, creating new piece file");
+			try
+			{
+				mergedFile.createNewFile();
+			}
+			catch(IOException error)
+			{
+				throw new RuntimeException("Error creating merged File");
+			}
+		}
+		try
+		{
+			FileWriter fileWriter = new FileWriter(mergedFile,false); //true means append to file
+			BufferedWriter mergedFileWriter = new BufferedWriter(fileWriter);
+			for(int i=0; i<numPieces; i++)
+			{
+				byte[] pieceBytes = getPiece(i);
+				for(int j=0; j<pieceBytes.length; j++)
+				{
+					mergedFileWriter.write(pieceBytes[j]);
+				}
+			}
+			mergedFileWriter.close();
+		}
+		catch(IOException e)
+		{
+			throw new RuntimeException("Error writing to piece file");
+		}
 	}
 	
 	private void initializeConnections()
