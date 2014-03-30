@@ -52,7 +52,6 @@ public class SwarmPeer {
 					bitfield[i]=false;
 				}
 			}
-			
 		}
 		
 		public int getPeerID() {

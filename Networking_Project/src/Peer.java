@@ -2,6 +2,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.io.BufferedInputStream;
@@ -74,6 +75,109 @@ public class Peer {
 		
 		int i=0;
 		while(i!=1){
+			
+		}
+	}
+	
+	private void selectPreferredSwarmPeers()
+	{
+		//used
+		
+		//
+		
+		ArrayList<Integer> temp = new ArrayList<Integer>(numPreferredNeighbors);
+		if(hasEntireFile == true)
+		{
+			int peersLeftToSelect = numPreferredNeighbors;
+			if(outputConnections.size() <= numPreferredNeighbors)
+			{
+				System.out.println("NumPreferred Neighbors is larger than outputConnections Size");
+				peersLeftToSelect = outputConnections.size();
+			}
+			while(peersLeftToSelect > 0)
+			{
+				
+				Random random = new Random();
+				int selectedPeer = random.nextInt(outputConnections.size()+1);
+				System.out.println("Peer_"+selectedPeer+" is chosen as preferred neighbor!");
+				
+				if(otherPeers.get(selectedPeer).getInterested()  && (temp.contains(selectedPeer)==false))
+				{
+					temp.add(selectedPeer); //make sure this swarm peer isnt selected again
+					peersLeftToSelect--;
+					if(otherPeers.get(selectedPeer).getIsChoked() == true)
+					{
+						OutputConnection outputConnection = getOutputConnection(otherPeers.get(selectedPeer));
+						if(outputConnection != null)
+						{
+							UnchokeMessage unchokeMessage = new UnchokeMessage();
+							outputConnection.addMessageToQueue(unchokeMessage);
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			int peersLeftToSelect = numPreferredNeighbors;
+			if(outputConnections.size() <= numPreferredNeighbors)
+			{
+				System.out.println("NumPreferred Neighbors is larger than outputConnections Size");
+				peersLeftToSelect = outputConnections.size();
+			}
+			while(peersLeftToSelect > 0)
+			{
+				int currentSelectedPeerIndex = 0;
+				
+				for(int i=0; i<otherPeers.size(); i++)
+				{
+					if(otherPeers.get(i).getInterested() == false)
+					{
+						temp.add(i); //cull disqualified peers
+					}
+				}
+				
+				//get starting one for search
+				for(int i=0; i<otherPeers.size(); i++)
+				{
+					if((otherPeers.get(i).getInterested() == true) && (temp.contains(i)==false))
+					{
+						currentSelectedPeerIndex = i;
+						break;
+					}
+				}
+				
+				for(int i=0; i<otherPeers.size(); i++)
+				{
+					if((otherPeers.get(i).getDownloadRate() >= otherPeers.get(currentSelectedPeerIndex).getDownloadRate()) 
+							&& (temp.contains(i)==false))
+					{
+						currentSelectedPeerIndex = i;
+					}
+				}
+				if((otherPeers.get(currentSelectedPeerIndex).getDownloadRate() <= 0.0f) || (otherPeers.get(currentSelectedPeerIndex).getInterested()==false))
+				{
+					System.out.println("Didnt select full amount of peers, 0 bps ");
+					return;  //dont want to unchoke any peers with 0 bps 
+				}
+				
+				System.out.println("Peer_"+currentSelectedPeerIndex+" is chosen as preferred neighbor!");
+				
+				if(otherPeers.get(currentSelectedPeerIndex).getInterested()  && (temp.contains(currentSelectedPeerIndex)==false))
+				{
+					temp.add(currentSelectedPeerIndex); //make sure this swarm peer isnt selected again
+					peersLeftToSelect--;
+					if(otherPeers.get(currentSelectedPeerIndex).getIsChoked() == true)
+					{
+						OutputConnection outputConnection = getOutputConnection(otherPeers.get(currentSelectedPeerIndex));
+						if(outputConnection != null)
+						{
+							UnchokeMessage unchokeMessage = new UnchokeMessage();
+							outputConnection.addMessageToQueue(unchokeMessage);
+						}
+					}
+				}
+			}
 			
 		}
 	}
@@ -585,34 +689,6 @@ public class Peer {
 		return numPeersDownloading;
 	}
 	
-	public void updateSwarmPeerBitfield(int pieceNumber, int SwarmPeerID){
-		for(int i=0;i< otherPeers.size();i++){
-			//if(SwarmPeerID == otherPeers.get(i).getPeerID())
-			//otherPeers.get(i).updateBitfield(pieceNumber);
-		}
-	}
-	
-	public void assignSwarmPeerBitfieldd(boolean[] bitfield, int SwarmPeerID){
-		for(int i=0;i< otherPeers.size();i++){
-			//if(SwarmPeerID == otherPeers.get(i).getPeerID())
-			//otherPeers.get(i).assignRecievedBitfield(bitfield);
-		}
-	}
-
-	public void requestRecieved(int pieceRequested, int senderID){
-		if(bitfield[pieceRequested] == true){
-		//Send piece from method or return somewhere else to handle
-		}
-		else{
-		//We don't have piece requested
-		}
-	}
-
-	public void pieceRecieved(int pieceRecieved, byte[] data){
-		bitfield[pieceRecieved] = true;
-		//Store data somewhere specific to peer, directrory
-	}
-	
 	public synchronized ArrayList<SwarmPeer> getOtherPeers()
 	{
 		return otherPeers;
@@ -658,6 +734,7 @@ public class Peer {
 						public void run()
 						{
 							System.out.println("unchoking");
+							selectPreferredSwarmPeers();
 						}
 					}, unchokingInterval*1000, unchokingInterval*1000);
 				
