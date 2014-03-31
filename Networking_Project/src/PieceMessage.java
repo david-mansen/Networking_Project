@@ -26,6 +26,8 @@ public class PieceMessage extends Message
 		pieceIndex = (payload[3] & 0xFF) | (payload[2] & 0xFF) << 8 | 
 				(payload[1] & 0xFF) << 16 | (payload[0] & 0xFF) << 24;
 		
+		System.out.println("Got piece: "+ pieceIndex);
+		
 		for(int i=4; i<payload.length; i++)
 		{
 			piece[i-4] = payload[i]; 
@@ -42,7 +44,7 @@ public class PieceMessage extends Message
 		
 		//pieceIndexBytes
 		ByteBuffer pieceIndexBuffer = ByteBuffer.allocate(4);
-		pieceIndexBuffer.putInt(length);
+		pieceIndexBuffer.putInt(pieceIndex);
 		byte[] pieceIndexBytes = pieceIndexBuffer.array();
 		
 		byte[] bytes = new byte[4 + length];
@@ -54,9 +56,9 @@ public class PieceMessage extends Message
 		}
 		bytes[4] = type;
 		
-		for(int i=5; i<pieceIndexBytes.length; i++)
+		for(int i=0; i<pieceIndexBytes.length; i++)
 		{
-			bytes[i] = pieceIndexBytes[i-5];
+			bytes[i+5] = pieceIndexBytes[i];
 		}
 		
 		for(int i=9; i<bytes.length; i++)

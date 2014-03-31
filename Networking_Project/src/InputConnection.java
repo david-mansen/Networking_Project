@@ -110,21 +110,15 @@ public class InputConnection extends Thread
 		{
 			int requestedPiece;
 			requestedPiece = ((RequestMessage) message).getRequestedPiece();
+			peer.receiveRequestMessage(senderPeer, (RequestMessage)message);
 			System.out.println("Request message requested piece: "+requestedPiece);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] received a request message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof PieceMessage)
 		{
-			int pieceIndex;
-			byte[] piece;
-			pieceIndex = ((PieceMessage) message).getPieceIndex();
-			piece = ((PieceMessage) message).getPiece();
-			System.out.println("Piece message piece index: "+pieceIndex);
-			for(int index = 0; index<piece.length; index++)
-			{
-				System.out.println("piece content: "+piece[index]);
-			}
+			System.out.println("BLAH: "+((PieceMessage) message).getPieceIndex());
+			peer.receivePieceMessage(senderPeer, (PieceMessage)message);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
 					"] received a piece message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}

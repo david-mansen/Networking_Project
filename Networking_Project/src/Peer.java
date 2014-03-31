@@ -64,6 +64,8 @@ public class Peer {
 		initializeBitfield();
 		initializeDirectory();
 		
+		writeToLogFile(" ");
+		
 		if(hasEntireFile)
 		{
 			breakFileIntoPieces(); //only if peer has entire file
@@ -288,22 +290,33 @@ public class Peer {
 	public synchronized void receiveUnchokeMessage(SwarmPeer senderPeer)
 	{
 		System.out.println("PEER_"+senderPeer.getPeerID()+" UN_CHOKED YOU!");
+		
+		ArrayList<Integer> candidatePieces = new ArrayList<Integer>();
+		
 		for(int i=0; i<bitfield.length; i++)
 		{
 			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
 			{
-				
-				for(OutputConnection outputConnection : outputConnections)
-				{
-					if(outputConnection.getReceiverPeer() == senderPeer)
-					{
-						System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+i);
-						RequestMessage requestMessage = new RequestMessage(i);
-						outputConnection.addMessageToQueue(requestMessage);
-						return;
-					}
-				}
+				candidatePieces.add(i);
 			}
+		}
+		
+		if(candidatePieces.size() < 1)
+		{
+			System.out.println("receiveUnchokeMessage() method returned prematurely");
+			return;
+		}
+		
+		Random random = new Random();
+		int selectedPiece = random.nextInt(candidatePieces.size());
+		
+		OutputConnection outputConnection = getOutputConnection(senderPeer);
+		if(outputConnection != null)
+		{
+			System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+selectedPiece);
+			RequestMessage requestMessage = new RequestMessage(selectedPiece);
+			outputConnection.addMessageToQueue(requestMessage);
+			return;
 		}
 	}
 	
@@ -328,6 +341,63 @@ public class Peer {
 					outputConnection.addMessageToQueue(interestedMessage);
 				}
 			}
+		}
+	}
+	
+	public synchronized void receiveRequestMessage(SwarmPeer senderPeer, RequestMessage requestMessage)
+	{
+		int requestPieceIndex = requestMessage.getRequestedPiece();
+		OutputConnection outputConnection = getOutputConnection(senderPeer);
+
+		System.out.println("RECEIVED REQUEST FOR PIECE_"+requestPieceIndex);
+		
+		if(senderPeer.getIsChoked() == true)
+		{
+			System.out.println("PEER IS CHOKED, CANNOT SEND PIECE");
+		}
+		else
+		{
+			System.out.println("ADDING PIECE MESSAGE TO QUEUE,  CONTENTS: PIECE_"+requestPieceIndex);
+			PieceMessage pieceMessage = new PieceMessage(requestPieceIndex, getPiece(requestPieceIndex));
+			outputConnection.addMessageToQueue(pieceMessage);
+		}
+	}
+	
+	public synchronized void receivePieceMessage(SwarmPeer senderPeer, PieceMessage pieceMessage)
+	{
+		System.out.println("RECEIVED PIECE_"+pieceMessage.getPieceIndex());
+		writePieceToFile(pieceMessage.getPieceIndex(), pieceMessage.getPiece());
+		
+		
+		
+		System.out.println("GOT PIECE, REQUESTING ANOTHER PIECE");
+		
+		ArrayList<Integer> candidatePieces = new ArrayList<Integer>();
+		
+		for(int i=0; i<bitfield.length; i++)
+		{
+			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
+			{
+				candidatePieces.add(i);
+			}
+		}
+		
+		if(candidatePieces.size() < 1)
+		{
+			System.out.println("receiveUnchokeMessage() method returned prematurely");
+			return;
+		}
+		
+		Random random = new Random();
+		int selectedPiece = random.nextInt(candidatePieces.size());
+		
+		OutputConnection outputConnection = getOutputConnection(senderPeer);
+		if(outputConnection != null)
+		{
+			System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+selectedPiece);
+			RequestMessage requestMessage = new RequestMessage(selectedPiece);
+			outputConnection.addMessageToQueue(requestMessage);
+			return;
 		}
 	}
 	
@@ -423,6 +493,7 @@ public class Peer {
 	
 	private synchronized void writePieceToFile(int pieceIndex, byte[] pieceBytes)
 	{
+		System.out.println("Writing piece"+pieceIndex);
 		File pieceFile = null;
 		pieceFile = new File("peer_"+peerID+"/"+"piece_"+pieceIndex+".dat");
 		if(!pieceFile.exists())
@@ -449,6 +520,7 @@ public class Peer {
 		}
 		catch(IOException e)
 		{
+			e.printStackTrace();
 			throw new RuntimeException("Error writing to piece file");
 		}
 	}
