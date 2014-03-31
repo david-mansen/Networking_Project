@@ -310,7 +310,13 @@ public class Peer {
 	public synchronized void receiveHaveMessage(SwarmPeer senderPeer, HaveMessage haveMessage)
 	{
 		int havePieceIndex = haveMessage.getHavePieceIndex();
-		
+		senderPeer.updateBitfield(havePieceIndex);
+		System.out.print("SwarmPeer updated bitfield: ");
+		for(int i=0; i<bitfield.length; i++)
+		{
+			System.out.print(senderPeer.getBitfield()[i]);
+		}
+		System.out.println("");
 		if(bitfield[havePieceIndex] == false)
 		{
 			for(OutputConnection outputConnection : outputConnections)
