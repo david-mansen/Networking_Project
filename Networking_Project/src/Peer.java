@@ -450,19 +450,22 @@ public class Peer {
 		{
 			inputStream = new BufferedInputStream(new FileInputStream(completeFile));
 			byte[] pieceBytes = new byte[pieceSize];
+			byte[] tempBytes = null;
 			for(int i=0; i<numPieces; i++)
 			{
 				try
 				{
 					int bytesRead = inputStream.read(pieceBytes);
+					
 					if(bytesRead>0)
 					{
-						for(int j=bytesRead; j<pieceSize; j++)
+						tempBytes = new byte[bytesRead];
+						for(int j=0; j<tempBytes.length; j++)
 						{
-							pieceBytes[j] = 0x00;
+							tempBytes[j] = pieceBytes[j];
 						}
 					}
-					writePieceToFile(i, pieceBytes);
+					writePieceToFile(i, tempBytes);
 				}
 				catch(IOException e)
 				{
@@ -892,6 +895,7 @@ public class Peer {
 			if(inputConnection != null) inputConnection.interrupt();
 		}
 		writeToLogFile(" ");
+		//mergePieces();
 		System.exit(0);
 	}
 	
