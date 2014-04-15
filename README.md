@@ -4,6 +4,7 @@ Networking_Project
 p2p file sharing program
 
 FOR TESTING:
+
 	Note: If piece/merged files seem to have different data than TheFile.dat,
 	check the encoding of TheFile.dat.  If saved with encoding ansi,
 	will have 1 byte for each character, and the file size will match
