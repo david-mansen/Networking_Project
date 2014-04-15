@@ -530,7 +530,11 @@ public class Peer {
 	
 	public synchronized byte[] getPiece(int pieceIndex)
 	{
-		byte[] piece = new byte[pieceSize];
+		int lastPieceSize = (fileSize) % pieceSize;
+		byte[] piece; // piece data
+		
+		if(pieceIndex == numPieces-1) piece = new byte[lastPieceSize];	// if final piece, ensure proper size
+		else piece = new byte[pieceSize];								// else, use standard piece size
 		
 		File pieceFile = new File("peer_"+peerID+"/"+"piece_"+pieceIndex+".dat");
 		System.out.println("File Size: "+pieceFile.length());
