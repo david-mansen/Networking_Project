@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
+import java.lang.System;
 import java.net.*;
 
 
@@ -35,7 +36,12 @@ public class Peer {
 	//other fields
 	private int numPieces;
 	private boolean[] bitfield;		//1 or 0 indicates the peer has the piece or not
-	
+	private boolean[] currentRequests; 	// Pieces currently being requested
+
+	//int skip = 1; 				//Used to check swarmPeers every so often;	
+	int numPiecesHave;			//How many pieces you have currently
+
+	private ArrayList<Request> requests;	
 	private ArrayList<SwarmPeer> otherPeers;
 	
 	private ArrayList<OutputConnection> outputConnections;
@@ -45,7 +51,7 @@ public class Peer {
 	
 	private ServerSocket serverSocket;
 	
-	private int forceExitTime = 20;
+	private int forceExitTime = 80;
 	
 	public Peer(int peerID) 
 	{
@@ -53,6 +59,7 @@ public class Peer {
 		
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
+		requests = new ArrayList<Request>(10);
 		
 		outputConnections = new ArrayList<OutputConnection>();
 		inputConnections = new ArrayList<InputConnection>();
@@ -296,8 +303,10 @@ public class Peer {
 		for(int i=0; i<bitfield.length; i++)
 		{
 			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
-			{
-				candidatePieces.add(i);
+			{		
+				if(!currentRequests[i]){				
+					candidatePieces.add(i);
+				}
 			}
 		}
 		
@@ -308,13 +317,16 @@ public class Peer {
 		}
 		
 		Random random = new Random();
-		int selectedPiece = random.nextInt(candidatePieces.size());
-		
+		int rand = random.nextInt(candidatePieces.size());
+		int selectedPiece = candidatePieces.get(rand);		
+
 		OutputConnection outputConnection = getOutputConnection(senderPeer);
 		if(outputConnection != null)
 		{
 			System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+selectedPiece);
 			RequestMessage requestMessage = new RequestMessage(selectedPiece);
+			currentRequests[selectedPiece] = true;
+			requests.add(new Request(selectedPiece, System.nanoTime()));			
 			outputConnection.addMessageToQueue(requestMessage);
 			return;
 		}
@@ -368,7 +380,19 @@ public class Peer {
 		System.out.println("RECEIVED PIECE_"+pieceMessage.getPieceIndex());
 		writePieceToFile(pieceMessage.getPieceIndex(), pieceMessage.getPiece());
 		
+		increaseNumPiecesHave();		
+		bitfield[pieceMessage.getPieceIndex()] = true;
+		for(int i = 0; i<requests.size();i++){
+			if(pieceMessage.getPieceIndex() == requests.get(i).getRequestPiece()){
+				requests.remove(i);
+				break;
+			}
+		}
 		
+		for(OutputConnection connection : outputConnections){
+		    connection.addMessageToQueue(new HaveMessage(pieceMessage.getPieceIndex()));
+		}
+		System.out.println("LETTING OTHER PEERS KNOW I HAVE PIECE " +pieceMessage.getPieceIndex());
 		
 		System.out.println("GOT PIECE, REQUESTING ANOTHER PIECE");
 		
@@ -377,8 +401,10 @@ public class Peer {
 		for(int i=0; i<bitfield.length; i++)
 		{
 			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
-			{
-				candidatePieces.add(i);
+			{				
+				if(!currentRequests[i]){
+					candidatePieces.add(i);
+				}
 			}
 		}
 		
@@ -389,13 +415,15 @@ public class Peer {
 		}
 		
 		Random random = new Random();
-		int selectedPiece = random.nextInt(candidatePieces.size());
-		
+		int rand = random.nextInt(candidatePieces.size());
+		int selectedPiece = candidatePieces.get(rand);
 		OutputConnection outputConnection = getOutputConnection(senderPeer);
 		if(outputConnection != null)
 		{
 			System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+selectedPiece);
 			RequestMessage requestMessage = new RequestMessage(selectedPiece);
+			currentRequests[selectedPiece] = true;				
+			requests.add(new Request(selectedPiece, System.nanoTime()));		
 			outputConnection.addMessageToQueue(requestMessage);
 			return;
 		}
@@ -782,9 +810,12 @@ public class Peer {
 	{
 		
 		bitfield = new boolean[numPieces];
+		currentRequests = new boolean[numPieces];		
+		Arrays.fill(currentRequests, false);
 		
 		if(hasEntireFile == true)
 		{
+			numPiecesHave = numPieces;
 			for(int i=0; i<numPieces; i++)
 			{
 				bitfield[i]=true;
@@ -792,6 +823,7 @@ public class Peer {
 		}
 		else
 		{
+			numPiecesHave = 0;			
 			for(int i=0; i<numPieces; i++)
 			{
 				bitfield[i]=false;
@@ -906,7 +938,7 @@ public class Peer {
 	private void setTimers()
 	{
 		//timers
-				Timer exitTimer = new Timer();
+				/*Timer exitTimer = new Timer();
 				exitTimer.scheduleAtFixedRate(new TimerTask()
 					{
 						@Override
@@ -915,7 +947,7 @@ public class Peer {
 							endProgram();
 						}
 					}, forceExitTime*1000, forceExitTime*1000);
-				
+				*/
 				Timer unchokingTimer = new Timer();
 				unchokingTimer.scheduleAtFixedRate(new TimerTask()
 					{
@@ -938,8 +970,54 @@ public class Peer {
 
 						}
 					}, optimisticUnchokingInterval*1000, optimisticUnchokingInterval*1000);
+
+				Timer checkRequestsAndCompletenessTimer = new Timer();
+				checkRequestsAndCompletenessTimer.scheduleAtFixedRate(new TimerTask()
+					{
+						@Override
+						public void run()
+						{
+						   System.out.println("Check if requests timed out");
+						   long currentTime = System.nanoTime();
+						   for(int i = requests.size()-1; i>-1;i--){
+								if(currentTime - requests.get(i).getTimeRequested() > 1000000){	//100 is an arbitrary value
+									currentRequests[requests.get(i).getRequestPiece()] = false;
+									requests.remove(i);
+								}
+						   }
+						
+				                    //if(skip ==2){
+						    	System.out.println("Checking if all the other peers have the entire file");							
+					      	    	checkOtherPeersFileStatus();
+							//skip =1;
+						   //}
+						   //skip++;
+						}
+					}, 20*1000, 20*1000);		//20 can totally change
 				
 				// end timers
+	}
+	
+	private synchronized void checkOtherPeersFileStatus(){
+		for(SwarmPeer connectPeer : otherPeers){
+			if(connectPeer.checkHasEntireFile() && hasEntireFile){}
+			else{
+				return;
+			}
+		}
+
+		endProgram();
+	}
+
+	private synchronized void increaseNumPiecesHave(){
+		numPiecesHave = numPiecesHave + 1;
+		if (numPiecesHave == numPieces){
+			setHasEntireFile(true);
+		}
+	}
+
+	public synchronized void setHasEntireFile(boolean x){
+		hasEntireFile = x;
 	}
 
 	private void initServerSocket()
@@ -952,5 +1030,13 @@ public class Peer {
 		{
 			throw new RuntimeException(e);
 		}
+	}
+
+	public synchronized ArrayList<Request> getRequests(){
+		return requests;
+	}
+	
+	public boolean receivedBitfield(SwarmPeer senderPeer){
+		return senderPeer.getSentBitfield();
 	}
 }

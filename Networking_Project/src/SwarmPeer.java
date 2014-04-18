@@ -20,6 +20,10 @@ public class SwarmPeer {
 		
 		private int bytesDownloadedLastInterval = 0;  //
 		private int unchokingInterval;
+
+		private int numPieces;
+		private int numPiecesHave;
+		private boolean sentBitfield = false;
 		
 		public SwarmPeer(int peerID, String hostName, int portNum, boolean hasEntireFile, int numPieces, int unchokingInterval) 
 		{
@@ -28,6 +32,7 @@ public class SwarmPeer {
 			this.portNum = portNum;
 			this.hasEntireFile = hasEntireFile;
 			this.unchokingInterval = unchokingInterval;
+			this.numPieces = numPieces;
 			
 			initializeBitfield(numPieces);
 			
@@ -41,6 +46,7 @@ public class SwarmPeer {
 			
 			if(hasEntireFile == true)
 			{
+				this.numPiecesHave = numPieces;
 				for(int i=0; i<numPieces; i++)
 				{
 					bitfield[i]=true;
@@ -48,6 +54,7 @@ public class SwarmPeer {
 			}
 			else
 			{
+				this.numPiecesHave = 0;
 				for(int i=0; i<numPieces; i++)
 				{
 					bitfield[i]=false;
@@ -70,13 +77,19 @@ public class SwarmPeer {
 		public synchronized void updateBitfield(int pieceNumber)
 		{
 			bitfield[pieceNumber] = true;
+			increaseNumPiecesHave();
 		}
 		
 		public synchronized void setBitfield(boolean[] newBitfield)
 		{
+			sentBitfield = true;			
 			for(int i=0; i<this.bitfield.length; i++)
 			{
+				if(newBitfield[i] == true && this.bitfield[i] == false){
+					increaseNumPiecesHave();
+				}				
 				this.bitfield[i] = newBitfield[i];
+				
 			}
 		}
 		
@@ -139,5 +152,24 @@ public class SwarmPeer {
 		public synchronized float getDownloadRate()
 		{
 			return (float)bytesDownloadedLastInterval/(float)unchokingInterval;
+		}
+
+		public synchronized void increaseNumPiecesHave(){
+			numPiecesHave = numPiecesHave+1;
+			if (numPiecesHave == numPieces){
+				setHasEntireFile(true);
+			}
+		}
+
+		public synchronized void setHasEntireFile(boolean x){
+			hasEntireFile = x;
+		}
+		
+		public synchronized boolean checkHasEntireFile(){
+			return hasEntireFile;
+		}
+
+		public synchronized boolean getSentBitfield(){
+			return sentBitfield;
 		}
 }

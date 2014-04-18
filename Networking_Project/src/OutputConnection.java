@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.lang.System;
 import java.util.concurrent.*;
 
 public class OutputConnection extends Thread
@@ -56,6 +57,9 @@ public class OutputConnection extends Thread
 			peer.addInputConnection(new InputConnection(peer,outputSocket, receiverPeer));
 		}
 		
+		if(peer.getPeerID() < receiverPeer.getPeerID()){
+			while(!peer.receivedBitfield(receiverPeer)){}
+		}
 		BitfieldMessage bitfieldMessage = new BitfieldMessage(peer.getBitfield());
 		sendMessage(bitfieldMessage);
 		
@@ -120,7 +124,7 @@ public class OutputConnection extends Thread
 		OutputStream outputStream;
 		try
 		{
-			outputStream = outputSocket.getOutputStream();
+			outputStream = outputSocket.getOutputStream();			
 			outputStream.write(outputBytes);
 			outputStream.flush();
 		}
