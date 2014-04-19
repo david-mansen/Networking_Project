@@ -251,7 +251,6 @@ public class InputConnection extends Thread
 			try
 			{
 				byte tempByte = inputStream.readByte();
-				System.out.println("read byte"+tempByte);
 				payloadBytes[payloadIndex] = tempByte;
 				payloadIndex++;
 			}

@@ -49,6 +49,8 @@ public class Peer {
 	
 	private int numPeersDownloading;
 	
+	private int totalNumPeers = 0;
+	
 	private ServerSocket serverSocket;
 	
 	private int forceExitTime = 80;
@@ -559,6 +561,10 @@ public class Peer {
 	public synchronized byte[] getPiece(int pieceIndex)
 	{
 		int lastPieceSize = (fileSize) % pieceSize;
+		if(lastPieceSize == 0)
+		{
+			lastPieceSize = pieceSize;
+		}
 		byte[] piece; // piece data
 		
 		if(pieceIndex == numPieces-1) piece = new byte[lastPieceSize];	// if final piece, ensure proper size
@@ -644,8 +650,6 @@ public class Peer {
 	{
 		for(SwarmPeer connectPeer : otherPeers)
 		{
-			if(connectPeer.getPeerID() < 1003)
-			{
 				if(connectPeer.getPeerID() > peerID)
 				{
 					InputConnection inputConnection = new InputConnection(this);
@@ -656,7 +660,6 @@ public class Peer {
 					OutputConnection outputConnection = new OutputConnection(this, connectPeer);
 					addOutputConnection(outputConnection);
 				}
-			}
 		}
 	}
 	
@@ -740,6 +743,9 @@ public class Peer {
 			int portNum = scanner.nextInt();
 			int hasEntireFileInteger= scanner.nextInt();
 			boolean hasEntireFile;
+			
+			totalNumPeers++;
+			
 			if(hasEntireFileInteger == 1)
 			{
 				hasEntireFile = true;
@@ -931,7 +937,7 @@ public class Peer {
 			if(inputConnection != null) inputConnection.interrupt();
 		}
 		writeToLogFile(" ");
-		//mergePieces();
+		mergePieces();
 		System.exit(0);
 	}
 	
