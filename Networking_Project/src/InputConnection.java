@@ -55,7 +55,6 @@ public class InputConnection extends Thread
 		
 		senderPeer.setIsConnected(true); //set flag that this swarmpeer has input/output connections
 		
-		peer.decrementNumPeersDownloading();
 		int i=0;
 		while(i!=1)
 		{

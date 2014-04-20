@@ -57,7 +57,7 @@ public class Peer {
 	
 	public Peer(int peerID) 
 	{
-		numPeersDownloading = 2;
+		numPeersDownloading = 0;
 		
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
@@ -80,9 +80,16 @@ public class Peer {
 			breakFileIntoPieces(); //only if peer has entire file
 		}
 		
-		setTimers();
-		
 		initializeConnections();
+		
+		while(numPeersDownloading < totalNumPeers -1)
+		{
+			System.out.println("numdownloading:" +numPeersDownloading);
+			System.out.println("total:" +totalNumPeers);
+
+		}
+		
+		setTimers();
 		
 		int i=0;
 		while(i!=1){
@@ -496,6 +503,8 @@ public class Peer {
 				}
 			}
 		}
+		
+		incrementNumPeersDownloading();
 	}
 	
 	
@@ -934,14 +943,9 @@ public class Peer {
 		return null;
 	}
 	
-	public synchronized void decrementNumPeersDownloading()
+	public synchronized void incrementNumPeersDownloading()
 	{
-		numPeersDownloading--;
-	}
-	
-	public synchronized int getNumPeersDownloading()
-	{
-		return numPeersDownloading;
+		numPeersDownloading++;
 	}
 	
 	public synchronized ArrayList<SwarmPeer> getOtherPeers()
