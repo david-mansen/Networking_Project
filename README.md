@@ -20,12 +20,13 @@ FOR TESTING:
 
 Features left to implement:
 
-	* Peer should not send a request for a piece it is already waiting for
+	* Peer should not send pieces to a peer it has choked.  This could happen if it chokes after the peer
+	  had already sent a request
 
-	* Timeout on wait for piece after request.  Possibly create a piece/time combo object
-	  and reset the flag if time > N seconds.  Check entire array every X seconds (with a timer)
+	* Send a 'not interested' message when receiving a piece to any swarmpeer that doesnt have any desired                   pieces
 
-	* Need to determine when every peer has complete file then terminate, and merge pieces
+	* Upon receiving a 'have' message, Send an 'interested' message to the peer that sent the have message 
+	  if it has a new piece that is desired. 
 
 
 Common bugs:
