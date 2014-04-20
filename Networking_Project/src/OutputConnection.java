@@ -63,32 +63,6 @@ public class OutputConnection extends Thread
 		BitfieldMessage bitfieldMessage = new BitfieldMessage(peer.getBitfield());
 		sendMessage(bitfieldMessage);
 		
-//		ChokeMessage chokeMessage = new ChokeMessage();
-//		sendMessage(chokeMessage);
-//		
-//		UnchokeMessage unchokeMessage = new UnchokeMessage();
-//		sendMessage(unchokeMessage);
-//		
-//		InterestedMessage interestedMessage = new InterestedMessage();
-//		sendMessage(interestedMessage);
-//		
-//		NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
-//		sendMessage(notInterestedMessage);
-//		
-//		BitfieldMessage bitfieldMessage = new BitfieldMessage(peer.getBitfield());
-//		sendMessage(bitfieldMessage);
-//
-//		RequestMessage requestMessage = new RequestMessage(12345678);
-//		sendMessage(requestMessage);
-//		
-//		HaveMessage haveMessage = new HaveMessage(987654321);
-//		sendMessage(haveMessage);
-//		
-//		byte[] dataBytes = {0x00,0x01,0x02,0x03};
-//		PieceMessage pieceMessage = new PieceMessage(0, dataBytes);
-//		sendMessage(pieceMessage);
-		
-//		peer.decrementNumPeersDownloading();
 		int i = 0;
 		while(i!=1)
 		{
@@ -97,24 +71,11 @@ public class OutputConnection extends Thread
 				outputMessage = outputMessageQueue.take();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 			if(outputMessage != null)
 			{
 				sendMessage(outputMessage);
 			}
-//			if(outputMessageQueue.isEmpty() == false)
-//			{
-//				System.out.println("message prepared to output: ");
-//				Message outputMessage = getMessageFromQueue();
-//
-//				if(outputMessage != null)
-//				{
-//					System.out.println("OUTPUT CONNECTION SHOULD BE SENDING MESSAGE");
-//					sendMessage(outputMessage);
-//				}
-//			}
-			
 		}
 	}
 	

@@ -70,26 +70,26 @@ public class InputConnection extends Thread
 		if(message instanceof ChokeMessage)
 		{
 			peer.receiveChokeMessage(senderPeer);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] is choked by [peer_ID "+senderPeer.getPeerID()+"].");
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] is choked by ["+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof UnchokeMessage)
 		{
 			peer.receiveUnchokeMessage(senderPeer);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] is unchoked by [peer_ID "+senderPeer.getPeerID()+"].");
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] is unchoked by ["+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof InterestedMessage)
 		{
 			senderPeer.setInterested(true);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] received an 'interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] received an 'interested' message from ["+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof NotInterestedMessage)
 		{
 			senderPeer.setInterested(false);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] received a 'not interested' message from [peer_ID "+senderPeer.getPeerID()+"].");
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] received a 'not interested' message from ["+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof HaveMessage)
 		{
@@ -97,14 +97,14 @@ public class InputConnection extends Thread
 			havePieceIndex = ((HaveMessage) message).getHavePieceIndex();
 			System.out.println("Have message piece index: "+havePieceIndex);
 			peer.receiveHaveMessage(senderPeer, (HaveMessage)message);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] received a have message from [peer_ID "+senderPeer.getPeerID()+"].");
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] received a 'have' message from ["+senderPeer.getPeerID()+"] for the piece "+havePieceIndex+".");
 		}
 		if(message instanceof BitfieldMessage )
 		{
 			peer.receiveBitfieldMessage(senderPeer, (BitfieldMessage)message);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] received a bitfield message from [peer_ID "+senderPeer.getPeerID()+"].");
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] received a bitfield message from ["+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof RequestMessage)
 		{
@@ -112,15 +112,13 @@ public class InputConnection extends Thread
 			requestedPiece = ((RequestMessage) message).getRequestedPiece();
 			peer.receiveRequestMessage(senderPeer, (RequestMessage)message);
 			System.out.println("Request message requested piece: "+requestedPiece);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] received a request message from [peer_ID "+senderPeer.getPeerID()+"].");
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] received a request message from ["+senderPeer.getPeerID()+"].");
 		}
 		if(message instanceof PieceMessage)
 		{
-			System.out.println("BLAH: "+((PieceMessage) message).getPieceIndex());
+			
 			peer.receivePieceMessage(senderPeer, (PieceMessage)message);
-			peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-					"] received a piece message from [peer_ID "+senderPeer.getPeerID()+"].");
 		}
 	}
 	
@@ -185,8 +183,17 @@ public class InputConnection extends Thread
 		int int_peerID = (peerIDBytes[3] & 0xFF) | ((peerIDBytes[2] & 0xFF) << 8) 
 				| ((peerIDBytes[1] & 0xFF) << 16) | ((peerIDBytes[0] & 0xFF) << 24);
 		//
-		peer.writeToLogFile("["+(new Date().toString())+"]: Peer [peer_ID "+peer.getPeerID()+
-				"] is connected from Peer [peer_ID "+int_peerID+"].");
+		if(peer.getPeerID() < int_peerID) //connected from
+		{
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] is connected from Peer ["+int_peerID+"].");
+		}
+		else //connected to
+		{
+			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
+					"] makes a connection to Peer ["+int_peerID+"].");
+		}
+		
 		handshakeReceived = true;
 		return int_peerID;
 	}

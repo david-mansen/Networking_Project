@@ -92,6 +92,8 @@ public class Peer {
 	
 	private void selectPreferredSwarmPeers()
 	{
+		ArrayList<SwarmPeer> selectedPeers = new ArrayList<SwarmPeer>();
+		
 		ArrayList<SwarmPeer> temp = new ArrayList<SwarmPeer>();
 		if(hasEntireFile == true)
 		{
@@ -120,6 +122,8 @@ public class Peer {
 				
 				SwarmPeer selectedPeer = temp.get(selectedPeerIndex);
 				temp.remove(selectedPeerIndex);
+				
+				selectedPeers.add(selectedPeer);
 				
 				System.out.println("Peer_"+selectedPeer.getPeerID()+" is randomly chosen as preferred neighbor!");
 				
@@ -171,8 +175,7 @@ public class Peer {
 				}
 				
 				temp.remove(selectedPeer);
-				
-				System.out.println("Peer_"+selectedPeer.getPeerID()+" is randomly chosen as preferred neighbor!");
+				selectedPeers.add(selectedPeer);
 				
 				peersLeftToSelect--;
 				selectedPeer.setIsPreferred(true);
@@ -189,6 +192,7 @@ public class Peer {
 					}
 				}
 			}
+			
 		}
 		//finally send choke messages to peers that were not preferred
 		for(SwarmPeer tempPeer : otherPeers)
@@ -205,6 +209,24 @@ public class Peer {
 				}
 			}
 		}
+		
+		String listOfSelectedPeers = "";
+		for(int i=0; i<selectedPeers.size(); i++)
+		{
+			SwarmPeer tempForLog = selectedPeers.get(i);
+			if(i< selectedPeers.size()-1)
+			{
+				listOfSelectedPeers = listOfSelectedPeers+tempForLog.getPeerID()+",";
+
+			}
+			else
+			{
+				listOfSelectedPeers = listOfSelectedPeers+tempForLog.getPeerID();
+			}
+		}
+		
+		writeToLogFile("["+(new Date().toString())+"]: Peer ["+getPeerID()+
+				"] has the preferred neighbors ["+listOfSelectedPeers+"].");
 	}
 
 	private void selectOptimisticallyUnchokedPeer()
@@ -252,9 +274,7 @@ public class Peer {
 			int selectedPeerIndex = random.nextInt(temp.size());
 			
 			SwarmPeer selectedPeer = temp.get(selectedPeerIndex);
-			
-			System.out.println("Peer_"+selectedPeer.getPeerID()+" is randomly chosen as opt unchoked neighbor!");
-						
+									
 			if(prevOptUnchokedPeer == selectedPeer)
 			{
 				//leave flags check, do nothing else
@@ -278,6 +298,8 @@ public class Peer {
 					}
 				}
 				
+				writeToLogFile("["+(new Date().toString())+"]: Peer ["+getPeerID()+
+						"] has the optimistically-unchoked neighbor ["+selectedPeer.getPeerID()+"].");
 				selectedPeer.setOptimisticallyUnchoked(true);
 				
 				if(selectedPeer.getIsChoked() == true)
@@ -382,7 +404,14 @@ public class Peer {
 		System.out.println("RECEIVED PIECE_"+pieceMessage.getPieceIndex());
 		writePieceToFile(pieceMessage.getPieceIndex(), pieceMessage.getPiece());
 		
+		//write to log
+		int tempForLog = numPiecesHave + 1;
+		writeToLogFile("["+(new Date().toString())+"]: Peer ["+getPeerID()+
+				"] has downloaded the piece "+pieceMessage.getPieceIndex()+" from ["+senderPeer.getPeerID()+"]. Now the number of pieces it has is ["+tempForLog+"].");
+		//
+		
 		increaseNumPiecesHave();		
+		
 		bitfield[pieceMessage.getPieceIndex()] = true;
 		for(int i = 0; i<requests.size();i++){
 			if(pieceMessage.getPieceIndex() == requests.get(i).getRequestPiece()){
@@ -613,7 +642,7 @@ public class Peer {
 	private void mergePieces()
 	{
 		File mergedFile = null;
-		mergedFile = new File("peer_"+peerID+"/"+"mergedFile.dat");
+		mergedFile = new File("peer_"+peerID+"/"+fileName);
 		if(!mergedFile.exists())
 		{
 			System.out.println("Piece file not found, creating new piece file");
@@ -937,7 +966,6 @@ public class Peer {
 			if(inputConnection != null) inputConnection.interrupt();
 		}
 		writeToLogFile(" ");
-		mergePieces();
 		System.exit(0);
 	}
 	
@@ -1018,6 +1046,9 @@ public class Peer {
 	private synchronized void increaseNumPiecesHave(){
 		numPiecesHave = numPiecesHave + 1;
 		if (numPiecesHave == numPieces){
+			writeToLogFile("["+(new Date().toString())+"]: Peer ["+getPeerID()+
+					"] has downloaded the complete file.");
+			mergePieces();
 			setHasEntireFile(true);
 		}
 	}
