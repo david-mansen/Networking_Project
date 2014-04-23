@@ -348,6 +348,10 @@ public class Peer {
 		
 		if(candidatePieces.size() < 1)
 		{
+			
+				OutputConnection outputConnection = getOutputConnection(senderPeer);
+				outputConnection.addMessageToQueue(new NotInterestedMessage());
+			
 			System.out.println("receiveUnchokeMessage() method returned prematurely");
 			return;
 		}
@@ -1045,9 +1049,24 @@ public class Peer {
 						   System.out.println("Check if requests timed out");
 						   long currentTime = System.nanoTime();
 						   for(int i = requests.size()-1; i>-1;i--){
+							   //System.err.println(i+ "request exists");
 								if(currentTime - requests.get(i).getTimeRequested() > 1000000){	//100 is an arbitrary value
+									int pieceIndex = requests.get(i).getRequestPiece();
 									currentRequests[requests.get(i).getRequestPiece()] = false;
 									requests.remove(i);
+									
+									for (OutputConnection outputConnection : outputConnections) {
+										SwarmPeer swarmPeerToMessage = outputConnection.getReceiverPeer();
+										if((bitfield[pieceIndex] == false)&& (swarmPeerToMessage.getBitfield()[pieceIndex] == true))
+										{
+											System.out.println("ADDING INTERESTED MESSAGE TO QUEUE");
+											InterestedMessage InterestedMessage = new InterestedMessage();
+											outputConnection.addMessageToQueue(InterestedMessage);
+											
+											RequestMessage requestMessage = new RequestMessage(pieceIndex);
+											outputConnection.addMessageToQueue(requestMessage);
+										}
+									}
 								}
 						   }
 						}
