@@ -55,6 +55,11 @@ public class Peer {
 	
 	private int forceExitTime = 80;
 	
+	private Timer exitTimer;
+	private Timer unchokingTimer;
+	private Timer optimisticUnchokingTimer;
+	private Timer checkRequestsTimer;
+	
 	public Peer(int peerID) 
 	{
 		numPeersDownloading = 0;
@@ -93,7 +98,7 @@ public class Peer {
 		
 		int i=0;
 		while(i!=1){
-			
+			checkOtherPeersFileStatus();
 		}
 	}
 	
@@ -969,6 +974,10 @@ public class Peer {
 		{
 			if(inputConnection != null) inputConnection.interrupt();
 		}
+		//exitTimer.cancel();
+		unchokingTimer.cancel();
+		optimisticUnchokingTimer.cancel();
+		checkRequestsTimer.cancel();
 		writeToLogFile(" ");
 		System.exit(0);
 	}
@@ -976,7 +985,7 @@ public class Peer {
 	private void setTimers()
 	{
 		//timers
-				/*Timer exitTimer = new Timer();
+				/*exitTimer = new Timer();
 				exitTimer.scheduleAtFixedRate(new TimerTask()
 					{
 						@Override
@@ -986,7 +995,7 @@ public class Peer {
 						}
 					}, forceExitTime*1000, forceExitTime*1000);
 				*/
-				Timer unchokingTimer = new Timer();
+				unchokingTimer = new Timer();
 				unchokingTimer.scheduleAtFixedRate(new TimerTask()
 					{
 						@Override
@@ -997,7 +1006,7 @@ public class Peer {
 						}
 					}, unchokingInterval*1000, unchokingInterval*1000);
 				
-				Timer optimisticUnchokingTimer = new Timer();
+				optimisticUnchokingTimer = new Timer();
 				optimisticUnchokingTimer.scheduleAtFixedRate(new TimerTask()
 					{
 						@Override
@@ -1009,8 +1018,8 @@ public class Peer {
 						}
 					}, optimisticUnchokingInterval*1000, optimisticUnchokingInterval*1000);
 
-				Timer checkRequestsAndCompletenessTimer = new Timer();
-				checkRequestsAndCompletenessTimer.scheduleAtFixedRate(new TimerTask()
+				checkRequestsTimer = new Timer();
+				checkRequestsTimer.scheduleAtFixedRate(new TimerTask()
 					{
 						@Override
 						public void run()
@@ -1023,13 +1032,6 @@ public class Peer {
 									requests.remove(i);
 								}
 						   }
-						
-				                    //if(skip ==2){
-						    	System.out.println("Checking if all the other peers have the entire file");							
-					      	    	checkOtherPeersFileStatus();
-							//skip =1;
-						   //}
-						   //skip++;
 						}
 					}, 20*1000, 20*1000);		//20 can totally change
 				
@@ -1049,7 +1051,7 @@ public class Peer {
 
 	private synchronized void increaseNumPiecesHave(){
 		numPiecesHave = numPiecesHave + 1;
-		if (numPiecesHave == numPieces){
+		if (numPiecesHave >= numPieces){
 			writeToLogFile("["+(new Date().toString())+"]: Peer ["+getPeerID()+
 					"] has downloaded the complete file.");
 			mergePieces();
