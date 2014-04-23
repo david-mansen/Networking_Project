@@ -37,11 +37,11 @@ public class Peer {
 	private int numPieces;
 	private boolean[] bitfield;		//1 or 0 indicates the peer has the piece or not
 	private boolean[] currentRequests; 	// Pieces currently being requested
+	private long[] currentRequestTimes;
 
 	//int skip = 1; 				//Used to check swarmPeers every so often;	
 	int numPiecesHave;			//How many pieces you have currently
 
-	private ArrayList<Request> requests;	
 	private ArrayList<SwarmPeer> otherPeers;
 	
 	private ArrayList<OutputConnection> outputConnections;
@@ -66,7 +66,6 @@ public class Peer {
 		
 		this.peerID = peerID;
 		otherPeers = new ArrayList<SwarmPeer>(5);
-		requests = new ArrayList<Request>(10);
 		
 		outputConnections = new ArrayList<OutputConnection>();
 		inputConnections = new ArrayList<InputConnection>();
@@ -340,9 +339,9 @@ public class Peer {
 		{
 			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
 			{		
-				if(!currentRequests[i]){				
+				//if(!currentRequests[i]){				
 					candidatePieces.add(i);
-				}
+				//}
 			}
 		}
 		
@@ -362,7 +361,7 @@ public class Peer {
 			System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+selectedPiece);
 			RequestMessage requestMessage = new RequestMessage(selectedPiece);
 			currentRequests[selectedPiece] = true;
-			requests.add(new Request(selectedPiece, System.nanoTime()));			
+			currentRequestTimes[selectedPiece] = System.currentTimeMillis();
 			outputConnection.addMessageToQueue(requestMessage);
 			return;
 		}
@@ -377,7 +376,7 @@ public class Peer {
 		{
 			System.out.print(senderPeer.getBitfield()[i]);
 		}
-		System.out.println("");
+		
 		if(bitfield[havePieceIndex] == false)
 		{
 			for(OutputConnection outputConnection : outputConnections)
@@ -425,11 +424,29 @@ public class Peer {
 		increaseNumPiecesHave();		
 		
 		bitfield[pieceMessage.getPieceIndex()] = true;
-		for(int i = 0; i<requests.size();i++){
-			if(pieceMessage.getPieceIndex() == requests.get(i).getRequestPiece()){
-				requests.remove(i);
-				break;
-			}
+		
+		currentRequests[pieceMessage.getPieceIndex()] = false;
+		
+		//send not interested to any peers that dont have the pieces desired
+		
+		for(OutputConnection outputConnection : outputConnections)
+		{
+			boolean hasDesiredPiece = false;
+			SwarmPeer swarmPeerToMessage = outputConnection.getReceiverPeer();
+				for(int i=0; i<bitfield.length; i++)
+				{
+					if((bitfield[i] == false) && (swarmPeerToMessage.getBitfield()[i] == true))
+					{
+						hasDesiredPiece = true;
+					}
+				}
+				
+				if(hasDesiredPiece == false)
+				{
+					System.out.println("ADDING NOT_INTERESTED MESSAGE TO QUEUE");
+					NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+					outputConnection.addMessageToQueue(notInterestedMessage);
+				}
 		}
 		
 		for(OutputConnection connection : outputConnections){
@@ -445,9 +462,9 @@ public class Peer {
 		{
 			if((bitfield[i] == false) && (senderPeer.getBitfield()[i] == true))
 			{				
-				if(!currentRequests[i]){
+				//if(!currentRequests[i]){
 					candidatePieces.add(i);
-				}
+				//}
 			}
 		}
 		
@@ -466,7 +483,7 @@ public class Peer {
 			System.out.println("ADDING REQUEST MESSAGE TO QUEUE FOR PIECE_"+selectedPiece);
 			RequestMessage requestMessage = new RequestMessage(selectedPiece);
 			currentRequests[selectedPiece] = true;				
-			requests.add(new Request(selectedPiece, System.nanoTime()));		
+			currentRequestTimes[selectedPiece] = System.currentTimeMillis();
 			outputConnection.addMessageToQueue(requestMessage);
 			return;
 		}
@@ -860,8 +877,9 @@ public class Peer {
 		
 		bitfield = new boolean[numPieces];
 		currentRequests = new boolean[numPieces];		
+		currentRequestTimes = new long[numPieces];
 		Arrays.fill(currentRequests, false);
-		
+		Arrays.fill(currentRequestTimes, 0);
 		if(hasEntireFile == true)
 		{
 			numPiecesHave = numPieces;
@@ -1024,16 +1042,17 @@ public class Peer {
 						@Override
 						public void run()
 						{
-						   System.out.println("Check if requests timed out");
-						   long currentTime = System.nanoTime();
-						   for(int i = requests.size()-1; i>-1;i--){
-								if(currentTime - requests.get(i).getTimeRequested() > 1000000){	//100 is an arbitrary value
-									currentRequests[requests.get(i).getRequestPiece()] = false;
-									requests.remove(i);
-								}
+						   long currentTime = System.currentTimeMillis();
+						   for(int i = 0; i< currentRequests.length; i++){
+							   if(currentRequests[i] == true)
+							   {
+								   if(currentTime - currentRequestTimes[i] > 20000){
+									   currentRequests[i] = false;
+								   }
+							   }
 						   }
 						}
-					}, 20*1000, 20*1000);		//20 can totally change
+					}, 1*1000, 1*1000);		//20 can totally change
 				
 				// end timers
 	}
@@ -1075,10 +1094,6 @@ public class Peer {
 		}
 	}
 
-	public synchronized ArrayList<Request> getRequests(){
-		return requests;
-	}
-	
 	public boolean receivedBitfield(SwarmPeer senderPeer){
 		return senderPeer.getSentBitfield();
 	}
