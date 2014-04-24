@@ -95,9 +95,9 @@ public class InputConnection extends Thread
 			int havePieceIndex;
 			havePieceIndex = ((HaveMessage) message).getHavePieceIndex();
 			System.out.println("Have message piece index: "+havePieceIndex);
-			peer.receiveHaveMessage(senderPeer, (HaveMessage)message);
 			peer.writeToLogFile("["+(new Date().toString())+"]: Peer ["+peer.getPeerID()+
 					"] received a 'have' message from ["+senderPeer.getPeerID()+"] for the piece "+havePieceIndex+".");
+			peer.receiveHaveMessage(senderPeer, (HaveMessage)message);
 		}
 		if(message instanceof BitfieldMessage )
 		{
@@ -123,6 +123,7 @@ public class InputConnection extends Thread
 	
 	public int waitForHandshakeMessage()
 	{
+
 		byte[] inputBytes = new byte[32];
 		int numBytes;
 		DataInputStream inputStream = null;

@@ -87,12 +87,12 @@ public class Peer {
 		
 		initializeConnections();
 		
-		while(numPeersDownloading < totalNumPeers -1)
-		{
-			System.out.println("numdownloading:" +numPeersDownloading);
-			System.out.println("total:" +totalNumPeers);
+		//while(numPeersDownloading < totalNumPeers -1)
+		//{
+			//System.out.println("numdownloading:" +numPeersDownloading);
+			//System.out.println("total:" +totalNumPeers);
 
-		}
+		//}
 		
 		setTimers();
 		
@@ -349,6 +349,10 @@ public class Peer {
 		if(candidatePieces.size() < 1)
 		{
 			System.out.println("receiveUnchokeMessage() method returned prematurely");
+			senderPeer.setHasInterestingPieces(false);
+			NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+			OutputConnection outputConnection = getOutputConnection(senderPeer);
+			outputConnection.addMessageToQueue(notInterestedMessage);
 			return;
 		}
 		
@@ -384,9 +388,13 @@ public class Peer {
 			{
 				if(outputConnection.getReceiverPeer() == senderPeer)
 				{
-					System.out.println("ADDING INTERESTED MESSAGE TO QUEUE");
-					InterestedMessage interestedMessage = new InterestedMessage();
-					outputConnection.addMessageToQueue(interestedMessage);
+					if(senderPeer.getHasInterestingPieces()==false)
+					{
+						senderPeer.setHasInterestingPieces(true);
+						System.out.println("ADDING INTERESTED MESSAGE TO QUEUE");
+						InterestedMessage interestedMessage = new InterestedMessage();
+						outputConnection.addMessageToQueue(interestedMessage);
+					}
 				}
 			}
 		}
@@ -425,6 +433,29 @@ public class Peer {
 		increaseNumPiecesHave();		
 		
 		bitfield[pieceMessage.getPieceIndex()] = true;
+		
+		for (OutputConnection outputConnection : outputConnections) 
+		{
+			if(outputConnection.getReceiverPeer().getHasInterestingPieces()==true)
+			{
+				boolean hasDesiredPiece = false;
+				SwarmPeer swarmPeerToMessage = outputConnection.getReceiverPeer();
+				for (int i = 0; i < bitfield.length; i++)
+				{
+					if ((bitfield[i] == false) && (swarmPeerToMessage.getBitfield()[i] == true))
+					{
+						hasDesiredPiece = true;
+					}
+				}
+				if (hasDesiredPiece == false)
+				{
+					System.out.println("ADDING NOT_INTERESTED MESSAGE TO QUEUE");
+					NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+					outputConnection.addMessageToQueue(notInterestedMessage);
+				}
+			}
+		}
+		
 		for(int i = 0; i<requests.size();i++){
 			if(pieceMessage.getPieceIndex() == requests.get(i).getRequestPiece()){
 				requests.remove(i);
@@ -454,6 +485,10 @@ public class Peer {
 		if(candidatePieces.size() < 1)
 		{
 			System.out.println("receiveUnchokeMessage() method returned prematurely");
+			senderPeer.setHasInterestingPieces(false);
+			NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
+			OutputConnection outputConnection = getOutputConnection(senderPeer);
+			outputConnection.addMessageToQueue(notInterestedMessage);
 			return;
 		}
 		
@@ -496,12 +531,14 @@ public class Peer {
 			{
 				if(hasDesiredPiece == true)
 				{
+					outputConnection.getReceiverPeer().setHasInterestingPieces(true);
 					System.out.println("ADDING INTERESTED MESSAGE TO QUEUE");
 					InterestedMessage interestedMessage = new InterestedMessage();
 					outputConnection.addMessageToQueue(interestedMessage);
 				}
 				else
 				{
+					outputConnection.getReceiverPeer().setHasInterestingPieces(false);
 					System.out.println("ADDING NOT_INTERESTED MESSAGE TO QUEUE");
 					NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
 					outputConnection.addMessageToQueue(notInterestedMessage);
@@ -978,6 +1015,7 @@ public class Peer {
 		unchokingTimer.cancel();
 		optimisticUnchokingTimer.cancel();
 		checkRequestsTimer.cancel();
+		writeToLogFile("["+(new Date().toString())+"]: Exiting...");
 		writeToLogFile(" ");
 		System.exit(0);
 	}

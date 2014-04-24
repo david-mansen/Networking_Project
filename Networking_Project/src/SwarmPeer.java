@@ -25,6 +25,8 @@ public class SwarmPeer {
 		private int numPiecesHave;
 		private boolean sentBitfield = false;
 		
+		private boolean hasInterestingPieces = false;
+		
 		public SwarmPeer(int peerID, String hostName, int portNum, boolean hasEntireFile, int numPieces, int unchokingInterval) 
 		{
 			this.peerID = peerID;
@@ -171,5 +173,15 @@ public class SwarmPeer {
 
 		public synchronized boolean getSentBitfield(){
 			return sentBitfield;
+		}
+		
+		public synchronized boolean getHasInterestingPieces()
+		{
+			return hasInterestingPieces;
+		}
+		
+		public synchronized void setHasInterestingPieces(boolean hasInterestingPieces)
+		{
+			this.hasInterestingPieces = hasInterestingPieces;
 		}
 }
