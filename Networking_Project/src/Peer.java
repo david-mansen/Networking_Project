@@ -421,18 +421,29 @@ public class Peer {
 	
 	public synchronized void receivePieceMessage(SwarmPeer senderPeer, PieceMessage pieceMessage)
 	{
-		System.out.println("RECEIVED PIECE_"+pieceMessage.getPieceIndex());
-		writePieceToFile(pieceMessage.getPieceIndex(), pieceMessage.getPiece());
+		boolean alreadyHasPiece = false;
+		if(bitfield[pieceMessage.getPieceIndex()] == true)
+		{
+			alreadyHasPiece=true;
+		}
 		
-		//write to log
-		int tempForLog = numPiecesHave + 1;
-		writeToLogFile("["+(new Date().toString())+"]: Peer ["+getPeerID()+
-				"] has downloaded the piece "+pieceMessage.getPieceIndex()+" from ["+senderPeer.getPeerID()+"]. Now the number of pieces it has is ["+tempForLog+"].");
-		//
 		
-		increaseNumPiecesHave();		
+		if(alreadyHasPiece == false)
+		{
+			System.out.println("RECEIVED PIECE_"+pieceMessage.getPieceIndex());
+			writePieceToFile(pieceMessage.getPieceIndex(), pieceMessage.getPiece());
+			
+			//write to log
+			int tempForLog = numPiecesHave + 1;
+			writeToLogFile("["+(new Date().toString())+"]: Peer ["+getPeerID()+
+					"] has downloaded the piece "+pieceMessage.getPieceIndex()+" from ["+senderPeer.getPeerID()+"]. Now the number of pieces it has is ["+tempForLog+"].");
+			//
+			
+			increaseNumPiecesHave();		
+			
+			bitfield[pieceMessage.getPieceIndex()] = true;
+		}
 		
-		bitfield[pieceMessage.getPieceIndex()] = true;
 		
 		for (OutputConnection outputConnection : outputConnections) 
 		{
