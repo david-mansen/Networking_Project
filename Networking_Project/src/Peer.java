@@ -87,12 +87,12 @@ public class Peer {
 		
 		initializeConnections();
 		
-		//while(numPeersDownloading < totalNumPeers -1)
-		//{
-			//System.out.println("numdownloading:" +numPeersDownloading);
-			//System.out.println("total:" +totalNumPeers);
+		while(numPeersDownloading < totalNumPeers -1)
+		{
+			System.out.println("numdownloading:" +numPeersDownloading);
+			System.out.println("total:" +totalNumPeers);
 
-		//}
+		}
 		
 		setTimers();
 		
