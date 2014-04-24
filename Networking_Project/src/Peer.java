@@ -425,24 +425,6 @@ public class Peer {
 		increaseNumPiecesHave();		
 		
 		bitfield[pieceMessage.getPieceIndex()] = true;
-		
-		for (OutputConnection outputConnection : outputConnections) {
-			boolean hasDesiredPiece = false;
-			SwarmPeer swarmPeerToMessage = outputConnection.getReceiverPeer();
-			for (int i = 0; i < bitfield.length; i++) {
-				if ((bitfield[i] == false)
-						&& (swarmPeerToMessage.getBitfield()[i] == true)) {
-					hasDesiredPiece = true;
-				}
-			}
-
-			if (hasDesiredPiece == false) {
-				System.out.println("ADDING NOT_INTERESTED MESSAGE TO QUEUE");
-				NotInterestedMessage notInterestedMessage = new NotInterestedMessage();
-				outputConnection.addMessageToQueue(notInterestedMessage);
-			}
-		}
-		
 		for(int i = 0; i<requests.size();i++){
 			if(pieceMessage.getPieceIndex() == requests.get(i).getRequestPiece()){
 				requests.remove(i);
